@@ -164,7 +164,6 @@ def lanuch_browser(device):
             )
 
 
-@staticmethod
 def tear_down_driver(device=None):
     """
     driver quit all and based on specific device

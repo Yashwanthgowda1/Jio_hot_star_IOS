@@ -34,11 +34,23 @@
         "xpath":"//android.view.View[@content-desc='SELECTED']"
     },
     "web_tv_shows_main_watch_now_button":{
-        "xpath":"//button[@aria-label='Subscribe to Watch']"
+        "xpath":"//button[@aria-label='Subscribe to Watch' or  @aria-label='Play']"
     },
     "verify_adds_section_in_tv_shows_page":{
         "xpath":"//span[@class=' ON_IMAGE LABEL_CAPTION1_SEMIBOLD ']"
 
+    },
+    "double_click_the_page_toaper_the_vieo_line":{
+        "xpath":"//div[@class='oMSW6l4Y23kO6ZaD67dCu']"
+    },
+    "skipp_backwards_button":{
+        "xpath":"//button[@data-testid='seek-rewind']"
+    },
+    "skipp_forwrd_button":{
+        "xpath" :"//button[@data-testid='seek-forward']"
+    },
+    "current_time_before_skipping":{
+        "xpath":"//span[@style='-webkit-line-clamp: 1;']"
     }
     }
 

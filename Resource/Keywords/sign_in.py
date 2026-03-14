@@ -5,7 +5,7 @@ from Libraries import shared_utils
 from Libraries import device_control
 from Libraries import device_manager
 
-home_page_dict = shared_utils.load_loctors("Resource\page_object\Home_page.json")
+home_page_dict = shared_utils.load_loctors("Resource\\page_object\\Home_page.json")
 
 
 class sign_in:
@@ -33,15 +33,25 @@ class sign_in:
             raise Exception(f"[{device}] Error clicking Continue: {e}")
 
     def select_required_ott_languages(self, device):
+        shared_utils.sleep_with_msg(
+            device, 5, "waiting to load the continue for location"
+        )
         info_allow_access_loc_window = shared_utils.find_element(
             device, home_page_dict, "home_page_location_enable_popups_window"
         )
-        if info_allow_access_loc_window and info_allow_access_loc_window.is_displayed():
-            shared_utils.find_element(device, home_page_dict, "allow_access").click()
+        copy = info_allow_access_loc_window
+        print("the values is clicked ")
+        if info_allow_access_loc_window:
+            info_allow_access_loc_window.click()
+            print("waiting for clicking")
+            shared_utils.sleep_with_msg(
+                device, 5, "waiting to load the continue for location"
+            )
+            # shared_utils.find_element(device, home_page_dict, "allow_access").click()
             elmsnt_dialog = shared_utils.find_element(
                 device, home_page_dict, "permission_dialog_info"
             )
-            if elmsnt_dialog and elmsnt_dialog.is_displayed():
+            if elmsnt_dialog:
                 shared_utils.find_element(
                     device, home_page_dict, "only_this_time"
                 ).click()
