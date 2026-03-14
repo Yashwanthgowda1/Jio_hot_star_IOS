@@ -1,6 +1,7 @@
 from Libraries import shared_utils
 import time
 from Libraries import device_manager
+from Libraries import device_control
 
 tv_shows_dict = shared_utils.load_loctors("Resource/page_object/tv_shows.json")
 home_page_dict = shared_utils.load_loctors("Resource\page_object\Home_page.json")
@@ -169,3 +170,15 @@ def verify_top_trending_diffrent_language(device):
             (list_languages_one_by.get_attribute("resource-id")).split("_")[-1:]
         )
     print(f"the list of all index: {_list_of_all_languages}")
+
+
+def tear_down_devices(device=None):
+    device_manager.tear_down_driver(device)
+
+
+def swipe_up_on_device(device):
+    shared_utils.swipe_up(device)
+
+
+def appium_run_background(device):
+    shared_utils.start_appium_background(device)

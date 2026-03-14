@@ -12,17 +12,19 @@ def clear_cache_the_app(devices):
     _devices = []
     if isinstance(devices, str):
         _devices = [devices]
-    result_devices_connected = subprocess.run(
-        ["adb", "devices"], capture_output=True, text=True
+    result_devices_connected = subprocess.Popen(
+        ["adb", "devices"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
     """
 
     :param device: this function help to clear cahce the apk adb shell pm clear <apknane?>
     :return:
     """
-    result_eache_row = result_devices_connected.stdout.strip().splitlines()[
-        1:
-    ]  # need the all the deatils expect the fisrt row
+    output, error = result_devices_connected.communicate()
+    result_eache_row = output.strip().splitlines()[1:]
+    # need the all the deatils expect the fisrt row
     apppackage = shared_utils.config["common_desired_caps"]["appPackage"]
     if apppackage is None:
         raise Exception("the apppacking is not found by the cofigfile recheck")

@@ -4,7 +4,7 @@ Library     ../../Jio_hot_start_IOS/Resource/Keywords/web_homepage.py
 
 
 *** Test Cases ***
-Launch Application
+TC1: Launch Application
     [Tags]    56788
     Launch And Signin Verify Home Page
     [Teardown]    close all drivers
@@ -17,7 +17,7 @@ Tc2: Select fav show from Tv options
     [Teardown]    close all drivers
 
 TC3: lanuh web appliaction jio hotstar
-    [Tags]     45679     
+    [Tags]     45679      @web
     lanuh_web_appliaction
     Sleep    10s
     [Teardown]    close all drivers
@@ -46,14 +46,14 @@ TC5: verify top treanding movies today
 
     
 TC6: lanuh web appliaction jio hotstar
-    [Tags]    78789   
+    [Tags]    78789   @web
     lanuh_web_appliaction
     swipe_the_elemnt_main_suggestion_left_and_verify    device=device1user
     [Teardown]    close all drivers
 
 
 TC7: verify user able to click watch now button in web tv shows page able to click run the video at 2x and video will play that speed and able tap times and running the video play 
-    [Tags]    90987    @SMOKE
+    [Tags]    90987    @SMOKE  @web
     lanuh_web_appliaction
     swipe_the_elemnt_main_suggestion_left_and_verify    device=device1user
     verify_user_able_to_click_watch_now_button_in_web_tv_shows_page    device=device1user

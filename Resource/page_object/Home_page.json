@@ -46,15 +46,15 @@
     
   },
   "home_page_location_enable_popups_window":{
-    "id":"tag_honey_pot_sheet",
-    "android_ui_automator" : "new UiSelector().resourceId('tag_honey_pot_sheet')",
-    "xpath":"//android.widget.ScrollView[@resource-id='tag_honey_pot_sheet']"
+    "xpath": "//android.widget.Button[@content-desc='Continue']"
+
   },
   "allow_access":{
-    "id":"Allow Access"
+    "id":"Deny Access"
   },
   "permission_dialog_info":{
-    "xpath":"//android.widget.LinearLayout[@resource-id='com.android.permissioncontroller:id/grant_dialog']"
+    "xpath":"//android.widget.TextView[@resource-id='com.android.permissioncontroller:id/permission_message']",
+    "android_ui_automator" : "new UiSelector().resourceId('com.android.permissioncontroller:id/permission_message')"
   },
   "only_this_time":{
     "xpath":"//*[@text='Only this time']"

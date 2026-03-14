@@ -1,4 +1,4 @@
-﻿# Appium-Python-Client==2.11.1
+# Appium-Python-Client==2.11.1
 # robotframework==7.3.2
 # robotframework-pythonlibcore==4.4.1
 # robotframework-seleniumlibrary==6.7.1
@@ -33,8 +33,8 @@ robotframework-databaselibrary==1.2.4
 
 
 # Additional Libraries
-Pillow==10.3.0
-black==25.11.0
+Pillow==12.1.1
+black==26.3.1
 
 # WebDriver Manager (optional, not used in GitHub actions)
 webdriver-manager==4.0.1
@@ -48,5 +48,4 @@ robotframework-retryfailed==0.2.0
 
 # Utilities
 python-dateutil==2.8.2
-
 
