@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "QA_main" ]
   schedule:
     - cron: '03 00 * * 0'
 

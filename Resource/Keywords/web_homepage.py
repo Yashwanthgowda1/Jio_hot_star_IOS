@@ -50,12 +50,14 @@ def swipe_the_elemnt_main_suggestion_left_and_verify(device):
 def verify_user_able_to_click_watch_now_button_in_web_tv_shows_page(device):
     driver = device_manager.get_existing_driver(device)
     before_click = driver.current_url
-    shared_utils.find_element(
+    shared_utils.sleep_with_msg(device, 5, "waiting for load the page after scroll")
+    return_watch_now=shared_utils.find_element(
         device, "tv_shows_dict", "web_tv_shows_main_watch_now_button"
     )
+    return_watch_now.click()
     if before_click == driver.current_url:
         raise AssertionError(
-            f"{device}: User is able to click watch now button in web tv shows page"
+            f"{device}: User is not able to click watch now button in web tv shows page"
         )
     elemnt_of_ads = shared_utils.find_element(
         device, "tv_shows_dict", "verify_adds_section_in_tv_shows_page"
