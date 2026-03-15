@@ -26,4 +26,5 @@ lanuh_web_appliaction
 
 
 close all drivers
-    tear_down_devices   device=None
+    [Arguments]        ${device}=None
+    tear_down_devices   device=${device}
