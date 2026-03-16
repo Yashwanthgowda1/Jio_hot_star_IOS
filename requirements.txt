@@ -41,7 +41,7 @@ webdriver-manager==4.0.1
 
 # Reporting & Metrics
 robotframework-metrics==3.3.3
-robotframework-xunit==1.0.0
+# robotframework-xunit==1.0.0
 
 # Retry Failed Tests
 robotframework-retryfailed==0.2.0

@@ -1,6 +1,6 @@
 *** Settings ***
-Resource    ../../Jio_hot_start_IOS/Resource/Keywords/Home_page.robot
-Library     ../../Jio_hot_start_IOS/Resource/Keywords/web_homepage.py
+Resource    ../Resource/Keywords/Home_page.robot
+Library     ../Resource/Keywords/web_homepage.py
 
 
 *** Test Cases ***
