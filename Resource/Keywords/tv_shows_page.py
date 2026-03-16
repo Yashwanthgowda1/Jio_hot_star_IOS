@@ -4,7 +4,7 @@ from Libraries import device_manager
 from Libraries import device_control
 
 tv_shows_dict = shared_utils.load_loctors("Resource/page_object/tv_shows.json")
-home_page_dict = shared_utils.load_loctors("Resource\page_object\Home_page.json")
+home_page_dict = shared_utils.load_loctors("Resource/page_object/Home_page.json")
 
 
 def verify_and_click_on_tv_show_menu_in_homepage(device):

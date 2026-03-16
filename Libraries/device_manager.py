@@ -1,3 +1,4 @@
+import platform
 from threading import Lock
 import time
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -10,8 +11,6 @@ import requests
 from selenium import webdriver as chrome_webdriver
 
 from appium import webdriver
-
-
 _logdir_create_lock = Lock()
 
 
@@ -23,7 +22,6 @@ class DriverManger:
     def initiate_driver(device):
         # the device_1 or browser it will choice
         device_class = shared_utils.getconfig_device_class(device)
-
         if device_class == "browsers":
             chrome_options = ChromeOptions()
             # Always use incognito/maximized modes:
@@ -42,9 +40,16 @@ class DriverManger:
                 "profile.default_content_setting_values.media_stream_mic": 2,  # Block microphone
                 "profile.default_content_setting_values.notifications": 2,  # Block notifications
             }
-            chrome_options.add_experimental_option("prefs", prefs)
 
-            # Always capture cromedriver logs, similar to 'appium_logs':
+
+            if platform.system() == "Linux" and os.environ.get("PYTHONPATH") == "/Automation":
+                chrome_options.add_argument("--headless=new")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--disable-gpu")
+
+            chrome_options.add_experimental_option("prefs", prefs)
+            # Always capture chromedriver logs, similar to 'appium_logs':
             _logdir = os.path.join(
                 BuiltIn().get_variable_value("${OUTPUT DIR}"), "chrome_logs"
             )
