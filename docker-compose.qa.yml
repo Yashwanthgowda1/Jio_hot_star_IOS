@@ -5,6 +5,8 @@ services:
     build: .
     container_name: automation-test
 
+
+
     environment:
       - TEST_ENV=QA
 
