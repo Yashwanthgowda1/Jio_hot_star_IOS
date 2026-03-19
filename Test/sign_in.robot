@@ -1,11 +1,11 @@
 *** Settings ***
-Resource    ../../Jio_hot_start_IOS/Resource/Keywords/Home_page.robot
-Library     ../../Jio_hot_start_IOS/Resource/Keywords/web_homepage.py
+Resource    ../Resource/Keywords/Home_page.robot
+Library     ../Resource/Keywords/web_homepage.py
 
 
 *** Test Cases ***
 TC1: Launch Application
-    [Tags]    56788
+    [Tags]    56788    @SANITY
     Launch And Signin Verify Home Page
     [Teardown]    close all drivers
 
@@ -53,9 +53,9 @@ TC6: lanuh web appliaction jio hotstar
 
 
 TC7: verify user able to click watch now button in web tv shows page able to click run the video at 2x and video will play that speed and able tap times and running the video play 
-    [Tags]    90987    @SMOKE  @web
+    [Tags]    90987    @SMOKE  @web1
     lanuh_web_appliaction
     swipe_the_elemnt_main_suggestion_left_and_verify    device=device1user
     verify_user_able_to_click_watch_now_button_in_web_tv_shows_page    device=device1user
-    [Teardown]     
+    [Teardown]      close all drivers    device=device1user
     

@@ -5,24 +5,41 @@ from Libraries import shared_utils
 from Libraries import device_control
 from Libraries import device_manager
 
-home_page_dict = shared_utils.load_loctors("Resource\\page_object\\Home_page.json")
+home_page_dict = shared_utils.load_loctors("Resource/page_object/Home_page.json")
 
 
 class sign_in:
+    # Decorator
     def clear_cache_before_launch(func):
         def wrapper(self, device, *args, **kwargs):
+            # Clear cache before launching
             device_control.clear_cache_the_app(device)
-            return func(self, device, *args, **kwargs)
 
+            # Retry getting driver
+            self.driver = self.get_driver_with_retry(device=device)
+
+            # Call the original function
+            return func(self, device, *args, **kwargs)
         return wrapper
 
+    # Method to launch app
     @clear_cache_before_launch
     def launch_jio_hotstar_application(self, device):
-        device_manager.get_driver(device)
         print(f"Launching Jio Hotstar app on {device}...")
         shared_utils.sleep_with_msg(
             device, 30, "waiting to load the driver application"
         )
+
+    # Retry getting driver
+    def get_driver_with_retry(self, device, retries=3, wait=5):
+        for attempt in range(retries):
+            try:
+                driver = device_manager.get_driver(device)
+                return driver
+            except Exception as e:
+                print(f"Attempt {attempt + 1} failed: {e}")
+                time.sleep(wait)
+        raise RuntimeError(f"Could not connect to Appium for device {device}")
 
     def click_continue_and_sigin_to_device(self, device):
         try:

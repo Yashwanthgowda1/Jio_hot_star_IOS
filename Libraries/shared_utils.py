@@ -3,8 +3,12 @@ import random
 import time
 import subprocess
 import os
+
+import requests
 from appium.webdriver.common.touch_action import TouchAction
 from selenium.webdriver.common.action_chains import ActionChains
+import sys
+import shutil
 
 
 from robot.api import logger
@@ -20,7 +24,7 @@ from selenium.common.exceptions import (
 )
 from Libraries import device_manager
 from Libraries.error_handler_utils import auto_handle_appium_errors, for_each_device
-
+import socket
 
 # ---------------- CONFIG ---------------- #
 
@@ -403,14 +407,77 @@ def get_action_chain_object(
         action = ActionChains(driver)
         action.move_to_element(src).perform()
 
+def is_port_open(port):
+    """Check if a TCP port is already in use."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
+def wait_for_accept_appium_connection(port, timeout=35):
+    """Wait until Appium server responds on /wd/hub/status"""
+    start_time = time.time()
+    url = f"http://127.0.0.1:{port}/wd/hub/status"
+
+    while True:
+        elapsed_time = time.time() - start_time
+        if elapsed_time > timeout:
+            break
+        try:
+            r = requests.get(url)
+            if r.status_code == 200:
+                return True, elapsed_time
+        except requests.exceptions.ConnectionError:
+            pass
+        time.sleep(0.5)
+
+    return False, timeout
+
+def find_appium_executable():
+    """
+    Find the Appium executable.
+    Works in CI, Windows, Linux, MacOS.
+    """
+    # 1. If APP_HOME or PATH contains it
+    appium_cmd = shutil.which("appium")
+    if appium_cmd:
+        return appium_cmd
+
+    # 2. Windows default global npm location
+    if sys.platform.startswith("win"):
+        npm_global = "appium"
+        return  npm_global
+
+    # 3. Linux / Mac default global npm location
+    default_npm = "/usr/local/bin/appium"
+    if os.path.exists(default_npm):
+        return default_npm
+
+    raise FileNotFoundError(
+        "Appium executable not found. Install Appium globally or add it to PATH."
+    )
 
 def start_appium_background(device):
-    random_port = random.randint(4500, 5000)
-    print(f"the port is chosen here {random_port}")
-    subprocess.Popen(
-        ["appium", "-p", str(random_port)],
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+    """
+    Start Appium server in the background.
+    If already running on port, reuse it.
+    Returns the port number.
+    """
+    port = random.randint(4500, 5000)
+    appium_executable = find_appium_executable()
+
+    if is_port_open(port):
+        print(f"Appium is already running on port {port}, continuing...")
+    else:
+        print(f"Starting Appium on port {port} for device {device}...")
+        subprocess.Popen(
+            [appium_executable, "-p", str(port)],
+            shell=True
+        )
+
+    # Wait until Appium server is ready
+    flag, waited_time = wait_for_accept_appium_connection(port=port, timeout=35)
+    if flag:
+        print(f"Appium ready on port {port} after {waited_time:.2f}s")
+    else:
+        raise RuntimeError(f"Appium server on port {port} did not start in {waited_time}s")
+
+    return port
