@@ -1,62 +1,45 @@
 # -------------------- Build Stage --------------------
-FROM python:3.11-slim AS Build
+FROM python:3.11-slim AS build
 
 WORKDIR /Automation
 
-# Install build tools (only needed for compiling some Python libs)
-RUN apt-get update && \
-    # this apt install helps to the force fully download with out interact with debain frontend error 100
-    apt-get install -y --no-install-recommends \
-    gcc \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements
 COPY requirements.txt .
 
-  # Install dependencies into user directory
- # insted dirctly store the dependec in user/bin or user/local/bin store ---> user
- # --no-cache-dir  --> in pip do not store the installed dependece
-RUN pip install --user --no-cache-dir -r requirements.txt
-
+# Only install build tools if your requirements.txt has C-extensions.
+# If all packages are pure Python, remove this entire RUN block.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc g++ build-essential && \
+    pip install --user --no-cache-dir -r requirements.txt && \
+    apt-get purge -y gcc g++ build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
 # -------------------- Runtime Stage --------------------
 FROM python:3.11-slim
 
 WORKDIR /Automation
 
-# Install chromium + required runtime libs
 RUN apt-get update && \
-    apt-get install -y \
-    chromium \
-    chromium-driver \
-    fonts-liberation \
-    libnss3 \
-    libatk-bridge2.0-0 \
-    libxkbcommon0 \
-    libgtk-3-0 \
-    libgbm1 \
-    libasound2 \
-    wget \
-    unzip \
+    apt-get install -y --no-install-recommends \
+        chromium \
+        chromium-driver \
+        fonts-liberation \
+        libnss3 \
+        libatk-bridge2.0-0 \
+        libxkbcommon0 \
+        libgtk-3-0 \
+        libgbm1 \
+        libasound2t64 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed Python packages from build stage
-COPY --from=Build /root/.local /root/.local
+COPY --from=build /root/.local /root/.local
 
-# Add python user bin to PATH
 ENV PATH="/root/.local/bin:$PATH"
-
-# Copy project
+ENV PYTHONPATH=/Automation
+ENV TEST_ENV=QA
 
 COPY . /Automation
 
-# Python module path
-# it helps to tell the .py file while going you main path present inside the /automation means resource/liberry/python.py
-ENV PYTHONPATH=/Automation
+RUN rm -rf /Automation/results /Automation/chrome_logs && \
+    chmod +x /Automation/scripts/run_tests.sh
 
-# Test environment setup
-ENV TEST_ENV=QA
-
-# Remove old logs if exist
-RUN rm -rf /Automation/results /Automation/chrome_logs
+CMD ["/Automation/scripts/run_tests.sh"]
