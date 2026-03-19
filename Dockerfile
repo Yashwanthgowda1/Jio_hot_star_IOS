@@ -42,4 +42,8 @@ COPY . /Automation
 RUN rm -rf /Automation/results /Automation/chrome_logs && \
     chmod +x /Automation/scripts/run_tests.sh
 
+
+    
+
+
 CMD ["/Automation/scripts/run_tests.sh"]
