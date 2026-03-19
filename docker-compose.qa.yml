@@ -18,4 +18,5 @@ services:
 #allocated space for chrome
     shm_size: "2gb"
 
+# never restart once fail or run
     restart: "no"

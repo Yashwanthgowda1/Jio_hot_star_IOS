@@ -13,6 +13,8 @@ RUN apt-get update && \
     apt-get purge -y gcc g++ build-essential && \
     rm -rf /var/lib/apt/lists/*
 
+    # install and remove
+
 # -------------------- Runtime Stage --------------------
 FROM python:3.11-slim
 

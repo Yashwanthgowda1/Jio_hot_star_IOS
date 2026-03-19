@@ -4,6 +4,8 @@ set -x
 RUN_ID=$(date +%Y%m%d-%H%M%S)
 echo "Running with RUN_ID=$RUN_ID, TEST_ENV=$TEST_ENV"
 
+# no need to give env take form compose
+
 mkdir -p /mnt/results/$TEST_ENV/$RUN_ID
 # RUN THE TEST CASES
 robot -d /mnt/results/$TEST_ENV/$RUN_ID  -i "@web" Test
