@@ -78,9 +78,6 @@ jobs:
             .
 
       # ── STEP 4a: Generate SARIF report ────────────────────────────
-      # SARIF = format GitHub Security tab API reads
-      # --exit-code 0 = never fail this step (reporting only)
-      # if: always() = run even if steps 1/2/3 blocked the build
       - name: 'Generate SARIF report'
         id: sarif_scan
         if: always()
