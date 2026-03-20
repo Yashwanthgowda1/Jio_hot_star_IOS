@@ -1,106 +1,329 @@
 name: Production security scan
-on:
-    pull_request:
-    push:
-        branches: [main, QA_main]
-permissions:
-    contents: read
-    security-events: write
-    actions:  read
-    packages: read
 
-# start to scan the project filesystem and license and vlun
+on:
+  pull_request:
+  push:
+    branches: [main, QA_main]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  packages: read
+
 jobs:
-   security-scan-on-dedence:
+  security-scan-on-dedence:
     name: 'Filesystem — secrets, licenses, vulns'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest        # change to self-hosted for EC2
 
     steps:
+
       - name: 'Checkout code'
         uses: actions/checkout@v4
 
-    # # ── STEP 1: Secrets scan — BLOCKS on any secret found ─────────
+      # ═══════════════════════════════════════════════════════════════
+      # INSTALL TRIVY — universal script
+      # Works on: GitHub-hosted runners (Ubuntu)
+      #           Self-hosted EC2 runners (Ubuntu/Debian)
+      #           Docker containers (Ubuntu/Debian/Alpine)
+      #
+      # Strategy:
+      #   1. Check if already installed → skip (EC2 reuse, Docker layer)
+      #   2. Try apt-get (Ubuntu/Debian) → fastest, GPG verified
+      #   3. Try apk (Alpine Docker)    → for Alpine-based containers
+      #   4. Try direct binary download → universal fallback
+      #   5. Verify installed version   → audit trail
+      #
+      # NO GitHub PAT needed. NO setup-trivy action.
+      # NO GitHub API for binary download.
+      # ═══════════════════════════════════════════════════════════════
+      - name: 'Install Trivy'
+        env:
+          TRIVY_VERSION: '0.68.0'
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Trivy Universal Install — v${TRIVY_VERSION}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+          # ── DETECT ENVIRONMENT ────────────────────────────────────
+          echo ""
+          echo "── Environment detection ──────────────────"
+
+          # Detect OS type
+          if [ -f /etc/os-release ]; then
+            OS_ID=$(grep ^ID= /etc/os-release | cut -d= -f2 | tr -d '"')
+            OS_VERSION=$(grep ^VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '"')
+          else
+            OS_ID="unknown"
+            OS_VERSION="unknown"
+          fi
+
+          # Detect if we are in a Docker container
+          if [ -f /.dockerenv ] || grep -q docker /proc/1/cgroup 2>/dev/null; then
+            ENV_TYPE="docker"
+          elif [ -n "$GITHUB_ACTIONS" ] && [ -z "$RUNNER_NAME" ]; then
+            ENV_TYPE="github-hosted"
+          elif [ -n "$RUNNER_NAME" ]; then
+            # Self-hosted runner sets RUNNER_NAME
+            ENV_TYPE="self-hosted"
+          else
+            ENV_TYPE="unknown"
+          fi
+
+          echo "OS: ${OS_ID} ${OS_VERSION}"
+          echo "Environment type: ${ENV_TYPE}"
+          echo "Architecture: $(uname -m)"
+          echo "User: $(whoami)"
+
+          # ── CHECK IF ALREADY INSTALLED ────────────────────────────
+          # Covers: self-hosted EC2 where Trivy persists between runs
+          #         Docker images that have Trivy pre-baked in
+          echo ""
+          echo "── Checking existing installation ─────────"
+          if command -v trivy &> /dev/null; then
+            CURRENT_VERSION=$(trivy --version 2>&1 | grep -oP 'Version: \K[0-9.]+' || echo "unknown")
+            echo "Trivy already installed: v${CURRENT_VERSION}"
+
+            if [ "$CURRENT_VERSION" = "$TRIVY_VERSION" ]; then
+              echo "Correct version — skipping install"
+              echo "trivy_installed=cached" >> $GITHUB_ENV
+              trivy --version
+              exit 0
+            else
+              echo "Version mismatch: have v${CURRENT_VERSION}, need v${TRIVY_VERSION}"
+              echo "Proceeding with install of correct version..."
+            fi
+          else
+            echo "Trivy not found — installing..."
+          fi
+
+          # ── METHOD 1: apt-get (Ubuntu/Debian) ─────────────────────
+          # Works on: GitHub-hosted Ubuntu runners
+          #           Self-hosted EC2 Ubuntu/Debian instances
+          #           Ubuntu/Debian based Docker containers
+          echo ""
+          echo "── Method 1: apt-get (Ubuntu/Debian) ──────"
+          if command -v apt-get &> /dev/null; then
+            echo "apt-get available — using Aqua Security apt repo"
+
+            # Install prerequisites
+            sudo apt-get update -qq 2>/dev/null || apt-get update -qq
+            sudo apt-get install -y --no-install-recommends wget apt-transport-https gnupg 2>/dev/null \
+              || apt-get install -y --no-install-recommends wget apt-transport-https gnupg
+
+            # Add GPG key — verifies package authenticity
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+              | gpg --dearmor \
+              | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null 2>&1 \
+              || wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+              | gpg --dearmor \
+              | tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+            # Add repo
+            echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
+              | sudo tee /etc/apt/sources.list.d/trivy.list 2>/dev/null \
+              || echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
+              | tee /etc/apt/sources.list.d/trivy.list
+
+            sudo apt-get update -qq 2>/dev/null || apt-get update -qq
+
+            # Try pinned version first
+            if sudo apt-get install -y trivy=${TRIVY_VERSION} 2>/dev/null \
+                || apt-get install -y trivy=${TRIVY_VERSION} 2>/dev/null; then
+              echo "apt-get install: SUCCESS (pinned v${TRIVY_VERSION})"
+              INSTALL_METHOD="apt-pinned"
+            # Fall back to latest from apt
+            elif sudo apt-get install -y trivy 2>/dev/null \
+                || apt-get install -y trivy 2>/dev/null; then
+              echo "apt-get install: SUCCESS (latest from repo)"
+              INSTALL_METHOD="apt-latest"
+            else
+              echo "apt-get install: FAILED — trying next method"
+              INSTALL_METHOD=""
+            fi
+
+            if [ -n "$INSTALL_METHOD" ] && command -v trivy &> /dev/null; then
+              echo "Method 1 succeeded"
+              echo "trivy_install_method=${INSTALL_METHOD}" >> $GITHUB_ENV
+              # Jump to verification
+            fi
+          else
+            echo "apt-get not available — skipping Method 1"
+          fi
+
+          # ── METHOD 2: apk (Alpine — Docker containers) ────────────
+          # Works on: Alpine-based Docker images (python:3.x-alpine etc.)
+          if ! command -v trivy &> /dev/null && command -v apk &> /dev/null; then
+            echo ""
+            echo "── Method 2: apk (Alpine Linux) ────────────"
+            echo "Alpine detected — using apk"
+
+            # Trivy is in the community repo for Alpine
+            apk add --no-cache trivy 2>/dev/null \
+              || apk add --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/community trivy
+
+            if command -v trivy &> /dev/null; then
+              echo "apk install: SUCCESS"
+              echo "trivy_install_method=apk" >> $GITHUB_ENV
+            else
+              echo "apk install: FAILED — trying next method"
+            fi
+          fi
+
+          # ── METHOD 3: Direct binary download (universal fallback) ──
+          # Works on: ANY Linux environment
+          #           When apt-get and apk both fail
+          #           Minimal Docker containers without package managers
+          #           No GitHub API — downloads directly from GitHub releases
+          #           This is a public asset — NO token required
+          if ! command -v trivy &> /dev/null; then
+            echo ""
+            echo "── Method 3: Direct binary download ────────"
+            echo "Package managers failed — downloading binary directly"
+            echo "Source: github.com/aquasecurity/trivy/releases (PUBLIC — no token)"
+
+            # Detect architecture
+            ARCH=$(uname -m)
+            case $ARCH in
+              x86_64)  BINARY_ARCH="Linux-64bit"  ;;
+              aarch64) BINARY_ARCH="Linux-ARM64"   ;;
+              armv7l)  BINARY_ARCH="Linux-32bit"   ;;
+              *)       BINARY_ARCH="Linux-64bit"   ;;
+            esac
+
+            DOWNLOAD_URL="https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_${BINARY_ARCH}.tar.gz"
+            echo "Downloading: $DOWNLOAD_URL"
+
+            # Download to temp
+            wget -q "$DOWNLOAD_URL" -O /tmp/trivy.tar.gz
+
+            if [ $? -ne 0 ]; then
+              echo "wget failed — trying curl"
+              curl -sL "$DOWNLOAD_URL" -o /tmp/trivy.tar.gz
+            fi
+
+            # Extract and place binary
+            tar -xzf /tmp/trivy.tar.gz -C /tmp trivy 2>/dev/null \
+              || tar -xzf /tmp/trivy.tar.gz -C /tmp
+
+            # Try with sudo first (GitHub-hosted, EC2), then without (some containers)
+            if sudo mv /tmp/trivy /usr/local/bin/trivy 2>/dev/null; then
+              sudo chmod +x /usr/local/bin/trivy
+            elif mv /tmp/trivy /usr/local/bin/trivy 2>/dev/null; then
+              chmod +x /usr/local/bin/trivy
+            else
+              # Last resort — put in home directory
+              mv /tmp/trivy $HOME/trivy
+              chmod +x $HOME/trivy
+              export PATH="$HOME:$PATH"
+              echo "PATH=$HOME:$PATH" >> $GITHUB_ENV
+            fi
+
+            rm -f /tmp/trivy.tar.gz
+
+            if command -v trivy &> /dev/null; then
+              echo "Binary download: SUCCESS"
+              echo "trivy_install_method=binary" >> $GITHUB_ENV
+            else
+              echo "ALL install methods FAILED"
+              echo "Please pre-install Trivy on this runner"
+              exit 1
+            fi
+          fi
+
+          # ── FINAL VERIFICATION ────────────────────────────────────
+          echo ""
+          echo "── Verification ────────────────────────────"
+          trivy --version
+          echo "Binary location : $(which trivy)"
+          echo "Binary size     : $(du -sh $(which trivy) | cut -f1)"
+          echo "Install method  : ${INSTALL_METHOD:-binary-fallback}"
+
+          ACTUAL=$(trivy --version 2>&1 | grep -oP 'Version: \K[0-9.]+' || echo "unknown")
+          echo "Requested       : v${TRIVY_VERSION}"
+          echo "Installed       : v${ACTUAL}"
+
+          if [ "$ACTUAL" = "$TRIVY_VERSION" ]; then
+            echo "Version check   : PASSED"
+          else
+            echo "Version check   : WARNING (v${ACTUAL} installed, v${TRIVY_VERSION} requested)"
+          fi
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Trivy ready on ${ENV_TYPE}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # ── STEP 1: Secrets scan ───────────────────────────────────────
       - name: 'Secrets scan'
-        uses: aquasecurity/trivy-action@0.24.0   # pinned — never @master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          scanners: 'secret'
-          format: 'table'
-          exit-code: '1'
-        continue-on-error: false
-    
-      # ── STEP 2: License scan — BLOCKS on copyleft licenses ────────
-      - name: 'License scan'
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          scanners: 'license'
-          format: 'table'
-          exit-code: '1'
+        run: |
+          trivy fs \
+            --scanners secret \
+            --format table \
+            --exit-code 1 \
+            .
         continue-on-error: false
 
-     # ── STEP 3: Vulnerability scan — BLOCKS on HIGH/CRITICAL ──────
+      # ── STEP 2: License scan ───────────────────────────────────────
+      - name: 'License scan'
+        run: |
+          trivy fs \
+            --scanners license \
+            --format table \
+            --exit-code 1 \
+            .
+        continue-on-error: false
+
+      # ── STEP 3: Vulnerability scan ─────────────────────────────────
       - name: 'Vulnerability scan'
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: 'fs'           # BUG FIX: was 'fS' (capital S) — now correctly lowercase
-          scan-ref: '.'
-          scanners: 'vuln'
-          format: 'table'
-          severity: 'HIGH,CRITICAL'
-          exit-code: '1'
-          ignore-unfixed: true
-     # ── STEP 4a: Generate SARIF report so that github api can create ui (all scanners, one pass) ───
+        run: |
+          trivy fs \
+            --scanners vuln \
+            --format table \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            --ignore-unfixed \
+            .
+
+      # ── STEP 4a: SARIF report ──────────────────────────────────────
       - name: 'Generate SARIF report'
         id: sarif_scan
-        uses: aquasecurity/trivy-action@0.24.0
-        if: always()   
-        # even the fail also show the results
-        with:
-            scan-type: 'fs'
-            scan-ref: '.'
-            scanners: 'vuln,secret,license'
-            format: 'sarif'
-            output: 'trivy-results.sarif'
-            severity: 'MEDIUM,HIGH,CRITICAL'
-            ignore-unfixed: true
+        if: always()
+        run: |
+          trivy fs \
+            --scanners vuln,secret,license \
+            --format sarif \
+            --output trivy-results.sarif \
+            --severity MEDIUM,HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 0 \
+            .
 
-    # ── STEP 4b: Upload SARIF → GitHub Security tab ───────────────
+      # ── STEP 4b: Upload SARIF ──────────────────────────────────────
       - name: 'Upload SARIF to Security tab'
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
-          category: 'trivy-fs-scan'  
+          category: 'trivy-fs-scan'
 
-   # ── STEP 4a: Generate SARIF report so that github api can create ui (all scanners, one pass) ───
-      - name: 'Generate SARIF report'
+      # ── STEP 5a: JSON report ───────────────────────────────────────
+      - name: 'Generate JSON report'
         id: json_scan
-        uses: aquasecurity/trivy-action@0.24.0
-        if: always()   
-        # even the fail also show the results
-        with:
-            scan-type: 'fs'
-            scan-ref: '.'
-            scanners: 'vuln,secret,license'
-            format: 'json'
-            output: 'trivy-results.json'
-            severity: 'MEDIUM,HIGH,CRITICAL'
-            ignore-unfixed: true
-    
-# ── STEP 5b: Parse JSON — extract real counts ─────────────────
+        if: always()
+        run: |
+          trivy fs \
+            --scanners vuln,secret,license \
+            --format json \
+            --output trivy-report.json \
+            --severity MEDIUM,HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 0 \
+            .
+
+      # ── STEP 5b: Parse results ─────────────────────────────────────
       - name: 'Parse scan results'
         id: parse_results
         if: always()
-
-        # jq is a command-line tool used to read, filter, and process JSON data.
-        # inide the json take the result [] → loop through array
-
-        # ?   ignore if missing (no crash
-        # [  ]->  Wrap everything into a list
-        # | length -> Count items in that list
         run: |
           CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo 0)
           HIGH=$(jq     '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")]     | length' trivy-report.json 2>/dev/null || echo 0)
@@ -114,20 +337,19 @@ jobs:
           echo "secrets=$SECRETS"     >> $GITHUB_OUTPUT
           echo "licenses=$LICENSES"   >> $GITHUB_OUTPUT
 
-          echo "FS SCAN → CRITICAL=> $CRITICAL HIGH=> $HIGH MEDIUM=> $MEDIUM SECRETS=$SECRETS LICENSES=$LICENSES"
- 
- # ── STEP 5c: Upload JSON artifact ─────────────────────────────
+          echo "FS SCAN → CRITICAL=$CRITICAL HIGH=$HIGH MEDIUM=$MEDIUM SECRETS=$SECRETS LICENSES=$LICENSES"
+
+      # ── STEP 5c: Upload JSON artifact ─────────────────────────────
       - name: 'Upload JSON artifact'
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fs-report-${{ github.run_number }}-${{ github.sha }}
-        # github.sha indicates the comit id
           path: trivy-report.json
           retention-days: 90
           if-no-files-found: warn
 
-# ── STEP 6: Dynamic summary ────────────────────────────────────
+      # ── STEP 6: Summary ────────────────────────────────────────────
       - name: 'Write job summary'
         if: always()
         env:
@@ -138,7 +360,6 @@ jobs:
           LICENSES:  ${{ steps.parse_results.outputs.licenses }}
           RUN_URL:   ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SHA_SHORT: ${{ github.sha }}
-        # $CRITICAL > 0
         run: |
           if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] || [ "$SECRETS" -gt 0 ]; then
             STATUS="FAILED"; ICON="x"
@@ -149,13 +370,13 @@ jobs:
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## :${ICON}: Filesystem scan — ${STATUS}
 
-          | Scanner      | Found      | Threshold |
-          |------------- |------------|-----------|
-          | Secrets      | ${SECRETS} | Any → fail |
-          | Licenses     | ${LICENSES}| Copyleft → fail |
-          | CRITICAL vulns | ${CRITICAL} | > 0 → fail |
-          | HIGH vulns   | ${HIGH}    | > 0 → fail |
-          | MEDIUM vulns | ${MEDIUM}  | report only |
+          | Scanner        | Found        | Threshold       |
+          |----------------|--------------|-----------------|
+          | Secrets        | ${SECRETS}   | Any → fail      |
+          | Licenses       | ${LICENSES}  | Copyleft → fail |
+          | CRITICAL vulns | ${CRITICAL}  | > 0 → fail      |
+          | HIGH vulns     | ${HIGH}      | > 0 → fail      |
+          | MEDIUM vulns   | ${MEDIUM}    | report only     |
 
           **Commit:** \`${SHA_SHORT:0:7}\` · [View run](${RUN_URL})
           EOF
