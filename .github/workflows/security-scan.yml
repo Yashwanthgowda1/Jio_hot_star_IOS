@@ -1,106 +1,135 @@
 name: Production security scan
-on:
-    pull_request:
-    push:
-        branches: [main, QA_main]
-permissions:
-    contents: read
-    security-events: write
-    actions:  read
-    packages: read
 
-# start to scan the project filesystem and license and vlun
+on:
+  pull_request:
+  push:
+    branches: [main, QA_main]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  packages: read
+
 jobs:
-   security-scan-on-dedence:
+  security-scan-on-dedence:
     name: 'Filesystem — secrets, licenses, vulns'
     runs-on: ubuntu-latest
 
     steps:
+
       - name: 'Checkout code'
         uses: actions/checkout@v4
 
-    # # ── STEP 1: Secrets scan — BLOCKS on any secret found ─────────
+      # ═══════════════════════════════════════════════════════════════
+      # INSTALL TRIVY v0.68.2 — runs ONCE, used by ALL steps below
+      # setup-trivy = installs binary only (no scanning here)
+      # cache: true = second run onwards uses cached binary (fast)
+      # token = avoids GitHub rate limit on binary download
+      # ─────────────────────────────────────────────────────────────
+      # WHY NOT trivy-action@0.24.0:
+      #   trivy-action@0.24.0 is broken — that is why setup-trivy
+      #   is used instead. setup-trivy puts the trivy binary on PATH,
+      #   then every scan step calls: run: trivy fs ...
+      #   scan-type / scanners / format etc. are CLI flags, not with: keys
+      # ═══════════════════════════════════════════════════════════════
+      - name: 'Install Trivy'
+        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+        with:
+          version: v0.68.2
+          cache: true
+          token: ${{ secrets.Git_PAT }}
+
+      # ── STEP 1: Secrets scan — BLOCKS on any secret found ─────────
+      # trivy fs = scan filesystem
+      # --scanners secret = only secrets scanner
+      # --exit-code 1 = fail this step if anything found → blocks PR
       - name: 'Secrets scan'
-        uses: aquasecurity/trivy-action@0.24.0   # pinned — never @master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          scanners: 'secret'
-          format: 'table'
-          exit-code: '1'
-        continue-on-error: false
-    
-      # ── STEP 2: License scan — BLOCKS on copyleft licenses ────────
-      - name: 'License scan'
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          scanners: 'license'
-          format: 'table'
-          exit-code: '1'
+        run: |
+          trivy fs \
+            --scanners secret \
+            --format table \
+            --exit-code 1 \
+            .
         continue-on-error: false
 
-     # ── STEP 3: Vulnerability scan — BLOCKS on HIGH/CRITICAL ──────
+      # ── STEP 2: License scan — BLOCKS on copyleft licenses ────────
+      # --scanners license = checks GPL / LGPL / AGPL in dependencies
+      - name: 'License scan'
+        run: |
+          trivy fs \
+            --scanners license \
+            --format table \
+            --exit-code 1 \
+            .
+        continue-on-error: false
+
+      # ── STEP 3: Vulnerability scan — BLOCKS on HIGH/CRITICAL ──────
+      # --severity HIGH,CRITICAL = only block on serious CVEs
+      # --ignore-unfixed = skip CVEs with no fix available (no noise)
       - name: 'Vulnerability scan'
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: 'fs'           # BUG FIX: was 'fS' (capital S) — now correctly lowercase
-          scan-ref: '.'
-          scanners: 'vuln'
-          format: 'table'
-          severity: 'HIGH,CRITICAL'
-          exit-code: '1'
-          ignore-unfixed: true
-     # ── STEP 4a: Generate SARIF report so that github api can create ui (all scanners, one pass) ───
+        run: |
+          trivy fs \
+            --scanners vuln \
+            --format table \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            --ignore-unfixed \
+            .
+
+      # ── STEP 4a: Generate SARIF report ────────────────────────────
+      # SARIF = format GitHub Security tab API reads
+      # --exit-code 0 = never fail this step (reporting only)
+      # if: always() = run even if steps 1/2/3 blocked the build
       - name: 'Generate SARIF report'
         id: sarif_scan
-        uses: aquasecurity/trivy-action@0.24.0
-        if: always()   
-        # even the fail also show the results
-        with:
-            scan-type: 'fs'
-            scan-ref: '.'
-            scanners: 'vuln,secret,license'
-            format: 'sarif'
-            output: 'trivy-results.sarif'
-            severity: 'MEDIUM,HIGH,CRITICAL'
-            ignore-unfixed: true
+        if: always()
+        run: |
+          trivy fs \
+            --scanners vuln,secret,license \
+            --format sarif \
+            --output trivy-results.sarif \
+            --severity MEDIUM,HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 0 \
+            .
 
-    # ── STEP 4b: Upload SARIF → GitHub Security tab ───────────────
+      # ── STEP 4b: Upload SARIF → GitHub Security tab ───────────────
+      # github/codeql-action reads the sarif file and shows
+      # file + line annotations in the Security tab
       - name: 'Upload SARIF to Security tab'
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
-          category: 'trivy-fs-scan'  
+          category: 'trivy-fs-scan'
 
-   # ── STEP 4a: Generate SARIF report so that github api can create ui (all scanners, one pass) ───
-      - name: 'Generate SARIF report'
+      # ── STEP 5a: Generate JSON report ─────────────────────────────
+      # JSON = full raw data — CVSS scores, fix versions, CVE IDs
+      # Used by the parse step below to extract real counts
+      # Also stored as downloadable artifact for 90 days
+      - name: 'Generate JSON report'
         id: json_scan
-        uses: aquasecurity/trivy-action@0.24.0
-        if: always()   
-        # even the fail also show the results
-        with:
-            scan-type: 'fs'
-            scan-ref: '.'
-            scanners: 'vuln,secret,license'
-            format: 'json'
-            output: 'trivy-results.json'
-            severity: 'MEDIUM,HIGH,CRITICAL'
-            ignore-unfixed: true
-    
-# ── STEP 5b: Parse JSON — extract real counts ─────────────────
+        if: always()
+        run: |
+          trivy fs \
+            --scanners vuln,secret,license \
+            --format json \
+            --output trivy-report.json \
+            --severity MEDIUM,HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 0 \
+            .
+
+      # ── STEP 5b: Parse JSON — extract real counts ─────────────────
+      # jq reads trivy-report.json and counts findings by severity
+      # Results written to $GITHUB_OUTPUT → next step reads them
+      # ? = ignore if field missing (no crash if file is empty)
+      # [] = wrap into list
+      # | length = count items in list
       - name: 'Parse scan results'
         id: parse_results
         if: always()
-
-        # jq is a command-line tool used to read, filter, and process JSON data.
-        # inide the json take the result [] → loop through array
-
-        # ?   ignore if missing (no crash
-        # [  ]->  Wrap everything into a list
-        # | length -> Count items in that list
         run: |
           CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo 0)
           HIGH=$(jq     '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")]     | length' trivy-report.json 2>/dev/null || echo 0)
@@ -114,20 +143,23 @@ jobs:
           echo "secrets=$SECRETS"     >> $GITHUB_OUTPUT
           echo "licenses=$LICENSES"   >> $GITHUB_OUTPUT
 
-          echo "FS SCAN → CRITICAL=> $CRITICAL HIGH=> $HIGH MEDIUM=> $MEDIUM SECRETS=$SECRETS LICENSES=$LICENSES"
- 
- # ── STEP 5c: Upload JSON artifact ─────────────────────────────
+          echo "FS SCAN → CRITICAL=$CRITICAL HIGH=$HIGH MEDIUM=$MEDIUM SECRETS=$SECRETS LICENSES=$LICENSES"
+
+      # ── STEP 5c: Upload JSON artifact ─────────────────────────────
+      # Stores trivy-report.json as downloadable artifact for 90 days
+      # github.run_number + github.sha = unique name per run
       - name: 'Upload JSON artifact'
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: fs-report-${{ github.run_number }}-${{ github.sha }}
-        # github.sha indicates the comit id
           path: trivy-report.json
           retention-days: 90
           if-no-files-found: warn
 
-# ── STEP 6: Dynamic summary ────────────────────────────────────
+      # ── STEP 6: Dynamic summary ────────────────────────────────────
+      # Reads REAL counts from parse step — not hardcoded labels
+      # Writes to $GITHUB_STEP_SUMMARY → rendered as Summary tab in GitHub UI
       - name: 'Write job summary'
         if: always()
         env:
@@ -138,7 +170,6 @@ jobs:
           LICENSES:  ${{ steps.parse_results.outputs.licenses }}
           RUN_URL:   ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SHA_SHORT: ${{ github.sha }}
-        # $CRITICAL > 0
         run: |
           if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ] || [ "$SECRETS" -gt 0 ]; then
             STATUS="FAILED"; ICON="x"
@@ -149,13 +180,13 @@ jobs:
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## :${ICON}: Filesystem scan — ${STATUS}
 
-          | Scanner      | Found      | Threshold |
-          |------------- |------------|-----------|
-          | Secrets      | ${SECRETS} | Any → fail |
-          | Licenses     | ${LICENSES}| Copyleft → fail |
-          | CRITICAL vulns | ${CRITICAL} | > 0 → fail |
-          | HIGH vulns   | ${HIGH}    | > 0 → fail |
-          | MEDIUM vulns | ${MEDIUM}  | report only |
+          | Scanner        | Found        | Threshold       |
+          |----------------|--------------|-----------------|
+          | Secrets        | ${SECRETS}   | Any → fail      |
+          | Licenses       | ${LICENSES}  | Copyleft → fail |
+          | CRITICAL vulns | ${CRITICAL}  | > 0 → fail      |
+          | HIGH vulns     | ${HIGH}      | > 0 → fail      |
+          | MEDIUM vulns   | ${MEDIUM}    | report only     |
 
           **Commit:** \`${SHA_SHORT:0:7}\` · [View run](${RUN_URL})
           EOF
