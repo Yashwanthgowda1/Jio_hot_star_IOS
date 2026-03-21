@@ -5,6 +5,7 @@ on:
     workflows: ["Codeql-analysis"]   # MUST match name
     types:
       - completed
+    branches: [main, QA_main]
 
 permissions:
   contents: read
@@ -16,6 +17,7 @@ jobs:
   security-scan-on-dedence:
     name: 'Filesystem — secrets, licenses, vulns'
     runs-on: ubuntu-latest        # change to self-hosted for EC2
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
 
