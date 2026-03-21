@@ -25,6 +25,7 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: python
+          ram: 1024
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
