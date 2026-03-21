@@ -11,7 +11,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     permissions:
       actions: read
@@ -25,9 +25,12 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: python
+          ram: 1024
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
+
+  
