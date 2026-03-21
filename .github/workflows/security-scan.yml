@@ -1,9 +1,10 @@
 name: Production security scan
 
 on:
-  pull_request:
-  push:
-    branches: [main, QA_main]
+  workflow_run:
+    workflows: ["Codeql-analysis"]   # MUST match name
+    types:
+      - completed
 
 permissions:
   contents: read
