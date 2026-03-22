@@ -5,6 +5,7 @@ on:
     workflows: ["Codeql-analysis"]   # MUST match name
     types:
       - completed
+    branches: ["main" , "QA_main"]
 
 permissions:
   contents: read
