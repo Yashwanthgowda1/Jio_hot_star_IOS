@@ -20,6 +20,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Debuging
+        run: |
+          pwd
+          ls -R
+          
+
       # step 2 — install terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -28,21 +34,26 @@ jobs:
 
       # step 3 — terraform init
       - name: Terraform Init
+        working-directory: terraform
         run: terraform init
 
       # step 4 — check formatting
       - name: Terraform Format
+        working-directory: terraform
         run: terraform fmt -check
 
       # step 5 — validate code
       - name: Terraform Validate
+        working-directory: terraform
         run: terraform validate
 
       # step 6 — plan (shows what will be created)
       - name: Terraform Plan
+        working-directory: terraform
         run: terraform plan -var-file="terraform/terraform.tfvars"
 
       # step 7 — apply (only on push to main)
       - name: Terraform Apply
+        working-directory: terraform
         if: (github.ref == 'refs/heads/Qa_main' ||  github.ref == 'refs/heads/main')  && github.event_name == 'push'
         run: terraform apply -auto-approve -var-file="terraform/terraform.tfvars"
