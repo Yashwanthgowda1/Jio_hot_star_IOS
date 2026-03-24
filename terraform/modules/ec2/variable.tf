@@ -51,7 +51,7 @@ variable "aws_instance" {
 variable "key_pairs" {
   description = "EC2 key pair name"
   type        = string
-  default     = "iam_aws.pem"
+  default     = "iam_aws"
 }
 
 variable "instance_type" {
