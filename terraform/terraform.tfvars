@@ -11,14 +11,14 @@ enable_dns_hostnames = true
 
 
 # ─── internet & nat gateway ───────────────────────────
-igw_name           = "igw-demo"
+igw_name = "igw-demo"
 
 
 # ─── ec2 ──────────────────────────────────────────────
 aws_instance          = "shared_jio_hotstart_pipelines"
 instance_type         = "t3.medium"
-aws_ami_values        = "ami-05d2d839d4f73aafb"   # Amazon Linux 2 — ap-south-1
-key_pairs             = "iam_aws"                  # your key pair name in AWS (no .pem)
+aws_ami_values        = "ami-05d2d839d4f73aafb" # Amazon Linux 2 — ap-south-1
+key_pairs             = "iam_aws"               # your key pair name in AWS (no .pem)
 aws_public_ip_enabled = true
 
 # ─── security ─────────────────────────────────────────
