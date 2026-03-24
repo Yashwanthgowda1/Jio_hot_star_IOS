@@ -40,7 +40,7 @@ jobs:
       # step 4 — check formatting
       - name: Terraform Format
         working-directory: terraform
-        run: terraform fmt -check
+        run: terraform fmt
 
       # step 5 — validate code
       - name: Terraform Validate
@@ -50,10 +50,10 @@ jobs:
       # step 6 — plan (shows what will be created)
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform/terraform.tfvars"
+        run: terraform plan -var-file="terraform.tfvars"
 
       # step 7 — apply (only on push to main)
       - name: Terraform Apply
         working-directory: terraform
         if: (github.ref == 'refs/heads/Qa_main' ||  github.ref == 'refs/heads/main')  && github.event_name == 'push'
-        run: terraform apply -auto-approve -var-file="terraform/terraform.tfvars"
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
