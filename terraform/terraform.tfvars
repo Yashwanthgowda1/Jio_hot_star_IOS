@@ -12,6 +12,7 @@ enable_dns_hostnames = true
 
 # ─── internet & nat gateway ───────────────────────────
 igw_name = "igw-demo"
+nat_gateway = ""     #if declred in varibale give umy values
 
 
 # ─── ec2 ──────────────────────────────────────────────

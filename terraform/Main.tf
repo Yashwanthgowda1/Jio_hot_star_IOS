@@ -38,5 +38,5 @@ module "ec2_vpc_infrastructure" {
   aws_public_ip_enabled = var.aws_public_ip_enabled
 
   # resolved at apply time — data source interpolation not allowed in variable defaults
-  my_ip = "${chomp(data.http.my_ip.body)}/32"
+  my_ip = "${chomp(data.http.my_ip.response_body)}/32"
 }
