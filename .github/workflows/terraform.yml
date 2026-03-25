@@ -56,8 +56,10 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform
         if: (github.ref == 'refs/heads/Qa_main' ||  github.ref == 'refs/heads/main')  && github.event_name == 'push'
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
-
+        run: |
+          echo 'key_pair = "${{ secrets.AWS_KEY_PAIR }}"' >> terraform.tfvars
+          terraform apply -auto-approve -var-file="terraform.tfvars"
+          
       - name: Destroy on Failure
         if: failure()
         working-directory: terraform
