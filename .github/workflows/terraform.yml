@@ -59,7 +59,7 @@ jobs:
       #  insted >> overwrite     ,  > replace the values 
         run: |
       
-          echo 'key_pairs = "${{ secrets.AWS_KEY_PAIR }}"' > terraform.tfvars
+          echo 'key_pairs = "${{ secrets.AWS_KEY_PAIR }}"' >> terraform.tfvars
           terraform apply -auto-approve -var-file="terraform.tfvars"
           
       - name: Destroy on Failure
