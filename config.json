@@ -3,7 +3,7 @@
         "appPackage": "in.startv.hotstar",
         "automationName": "UiAutomator2",
         "platformName": "android",
-        "deviceName": "Android",
+        "deviceName": "emulator-5554",
         "newCommandTimeout": 90000,
         "optionalIntentArguments": "--esn automation"
     },

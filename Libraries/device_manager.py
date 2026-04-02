@@ -11,6 +11,7 @@ import requests
 from selenium import webdriver as chrome_webdriver
 
 from appium import webdriver
+
 _logdir_create_lock = Lock()
 
 
@@ -22,6 +23,8 @@ class DriverManger:
     def initiate_driver(device):
         # the device_1 or browser it will choice
         device_class = shared_utils.getconfig_device_class(device)
+        global driver
+        # return the object
         if device_class == "browsers":
             chrome_options = ChromeOptions()
             # Always use incognito/maximized modes:
@@ -41,8 +44,10 @@ class DriverManger:
                 "profile.default_content_setting_values.notifications": 2,  # Block notifications
             }
 
-
-            if platform.system() == "Linux" and os.environ.get("PYTHONPATH") == "/Automation":
+            if (
+                platform.system() == "Linux"
+                and os.environ.get("PYTHONPATH") == "/Automation"
+            ):
                 chrome_options.add_argument("--headless=new")
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -87,8 +92,9 @@ class DriverManger:
                 f"Setting up Appium driver for {device} with caps: {dict_caps_values}"
             )
             # port=shared_utils.get_top_level_device_port(device)
-            port = shared_utils.config[device_class][device]["port"]
 
+            # port = shared_utils.config[device_class][device]["port"]
+            port = shared_utils.start_appium_background(device)
             # Construct Appium server URL
             appium_url = f"http://127.0.0.1:{port}{endpoint}"
 

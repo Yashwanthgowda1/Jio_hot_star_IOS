@@ -59,3 +59,8 @@ TC7: verify user able to click watch now button in web tv shows page able to cli
     verify_user_able_to_click_watch_now_button_in_web_tv_shows_page    device=device1user
     [Teardown]      close all drivers    device=device1user
     
+TC8: verify user able to answer the call during scrolling a movies in serach tab
+    [Tags]   457010   @SMOKE   @SANITY
+    Launch And Signin Verify Home Page without swipe
+    verify_user_able_scroll_most_popular_and_below_all_contents    device=device_1
+    [Teardown]      close all drivers    device=device_1

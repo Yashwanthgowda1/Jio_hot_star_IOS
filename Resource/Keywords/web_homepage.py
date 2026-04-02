@@ -51,7 +51,7 @@ def verify_user_able_to_click_watch_now_button_in_web_tv_shows_page(device):
     driver = device_manager.get_existing_driver(device)
     before_click = driver.current_url
     shared_utils.sleep_with_msg(device, 5, "waiting for load the page after scroll")
-    return_watch_now=shared_utils.find_element(
+    return_watch_now = shared_utils.find_element(
         device, "tv_shows_dict", "web_tv_shows_main_watch_now_button"
     )
     return_watch_now.click()

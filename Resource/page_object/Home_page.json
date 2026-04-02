@@ -46,18 +46,20 @@
     
   },
   "home_page_location_enable_popups_window":{
-    "xpath": "//android.widget.Button[@content-desc='Continue']"
+    "xpath": "//*[@content-desc='Continue']"
 
   },
   "allow_access":{
     "id":"Deny Access"
   },
   "permission_dialog_info":{
-    "xpath":"//android.widget.TextView[@resource-id='com.android.permissioncontroller:id/permission_message']",
+    "id2": "com.android.permissioncontroller:id/permission_message",
+    "xpath":"//*[@resource-id='com.android.permissioncontroller:id/permission_message']",
     "android_ui_automator" : "new UiSelector().resourceId('com.android.permissioncontroller:id/permission_message')"
   },
   "only_this_time":{
-    "xpath":"//*[@text='Only this time']"
+    "xpath":"//*[@text='Only this time']",
+    "id": "com.android.permissioncontroller:id/permission_allow_one_time_button"
   },
 "top_tranding_movies_today":{
   "xpath":"//android.widget.TextView[@text='Top 10 in India Today' and  @resource-id='tag_label_regular_tray_title']"
@@ -71,5 +73,20 @@
   },
   "web_number_sliding_happens":{
     "xpath":"//div[@class='swiper-wrapper']"
+  },
+  "sliding_main_popular_shows_videos": {
+    "android_ui_automator": "new UiSelector().resourceId(\"tag_image_new_masthead\")",
+    "xpath": "//android.view.View[@resource-id=\"tag_image_new_masthead\"]"
+  },
+  "answer_reject_call": {
+    "xpath": "//*[@content-desc='Answers & Inspiration']"
+  },
+  "click_on_answer": {
+     "id2": "com.app:id/answer",
+    "xpath": "//android.widget.TextView[@text='Answer']",
+    "xpath1": "//*[contains(@content-desc,'Answer')]"
+  },
+  "end_call_after_recive": {
+    "xpath": "//*[@content-desc='End call']"
   }
 }
