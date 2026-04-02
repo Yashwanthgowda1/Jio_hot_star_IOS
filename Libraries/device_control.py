@@ -20,7 +20,7 @@ def clear_cache_the_app(devices):
     """
 
     :param device: this function help to clear cahce the apk adb shell pm clear <apknane?>
-    :return:
+    :return:  and here result_devices_connected communicate is take the output when use popn it will immdiatly exist
     """
     output, error = result_devices_connected.communicate()
     result_eache_row = output.strip().splitlines()[1:]
@@ -32,7 +32,7 @@ def clear_cache_the_app(devices):
         try:
             # Run adb command for that specific device
             print(
-                f" before clear cahing checking the device existing { result_eache_row[device].split()[0]}"
+                f" before clear cahing checking the device existing  and taking from the device_1 passed the type{ result_eache_row[device].split()[0]}"
             )
             result = subprocess.run(
                 [
@@ -105,37 +105,39 @@ def collect_and_perform_the_device_status():
         check_device_is_onine(dev)
 
 
-def launch_jio_hotstar_application(device):
-    """
-    Launches the Jio Hotstar (Disney + Hotstar) app on the given connected device
-    using the driver instance managed by device_manager.
-
-    """
-
-    # Get driver from device manager
-    driver = device_manager.get_driver(device)
-
-    print(f"Launching Jio Hotstar app on {device}...")
-
-    # Optional: Wait for app to fully load
-    sleep_with_msg(device, 30, "waiting to load the driver application")
-
-    try:
-        # Verify app is launched by checking for a key UI element
-        # (Example: The "Search" or "Home" icon — update locator as per your app)
-        home_element = driver.find_element(
-            AppiumBy.XPATH, "//android.widget.Button[@content-desc='Continue']"
-        )
-
-        if home_element.is_displayed():
-            print("✅ Jio Hotstar app launched successfully.")
-        else:
-            print("⚠️ App launched, but home element not visible yet.")
-
-    except Exception as e:
-        print(f"❌ Failed to verify app launch: {e}")
-
-    return driver
+#
+#
+# def launch_jio_hotstar_application(device):
+#     """
+#     Launches the Jio Hotstar (Disney + Hotstar) app on the given connected device
+#     using the driver instance managed by device_manager.
+#
+#     """
+#
+#     # Get driver from device manager
+#     driver = device_manager.get_driver(device)
+#
+#     print(f"Launching Jio Hotstar app on {device}...")
+#
+#     # Optional: Wait for app to fully load
+#     sleep_with_msg(device, 30, "waiting to load the driver application")
+#
+#     try:
+#         # Verify app is launched by checking for a key UI element
+#         # (Example: The "Search" or "Home" icon — update locator as per your app)
+#         home_element = driver.find_element(
+#             AppiumBy.XPATH, "//android.widget.Button[@content-desc='Continue']"
+#         )
+#
+#         if home_element.is_displayed():
+#             print("✅ Jio Hotstar app launched successfully.")
+#         else:
+#             print("⚠️ App launched, but home element not visible yet.")
+#
+#     except Exception as e:
+#         print(f"❌ Failed to verify app launch: {e}")
+#
+#     return driver
 
 
 def click_continue_and_sigin_to_device(device):

@@ -1,3 +1,6 @@
+import subprocess
+
+
 from Libraries import shared_utils
 import time
 from Libraries import device_manager
@@ -182,3 +185,64 @@ def swipe_up_on_device(device):
 
 def appium_run_background(device):
     shared_utils.start_appium_background(device)
+
+
+def verify_user_able_scroll_most_popular_and_below_all_contents(
+    device, number_of_sides=3, phone_number=6363750455
+):
+    scrolling_need_elements = shared_utils.find_element(
+        device, home_page_dict, "sliding_main_popular_shows_videos"
+    )
+    # if not scrolling_need_elements.is_displayed():
+    #     shared_utils.swipe_up_element_ref(device,scrolling_need_elements)
+    while number_of_sides >= 0:
+        shared_utils.swipe_left_to_right_fav_shows(device, scrolling_need_elements)
+        shared_utils.sleep_with_msg(device, 5, "new slide again started")
+        number_of_sides -= 1
+        # here need to pass the mobile call during the swiping activity and use popen as advance funstion
+        if number_of_sides == 2:
+            process = subprocess.Popen(
+                ["adb", "emu", "gsm", "call", str(phone_number)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            """
+            :Parm : when pass the values in popen is will return once exicute and collect the values 
+            communicate used to show that collected logs
+            stdout, stderr = process.communicate()
+            """
+            stdout, stderr = process.communicate()
+            if stdout:
+                print("the success of calling", stdout.strip())
+    #             flaky test lins
+    # shared_utils.find_element(device, home_page_dict, "click_on_answer").click()
+    process = subprocess.Popen(
+        ["adb", "shell", "input", "keyevent", "5"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    stdout, stderr = process.communicate()
+    if stdout:
+        print(
+            "the success after answer from the keycode calling",
+            stdout.strip().split(" ")[0],
+        )
+    shared_utils.sleep_with_msg(device, 5, "wait until the ui call appear")
+    subprocess.Popen(
+        ["adb", "shell", "input", "tap", "350", "80"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    shared_utils.sleep_with_msg(device, 5, "wait until the ui call appear")
+    shared_utils.find_element(device, home_page_dict, "end_call_after_recive").click()
+    scrolling_need_elements = shared_utils.find_element(
+        device, home_page_dict, "sliding_main_popular_shows_videos"
+    )
+    if not scrolling_need_elements.is_displayed():
+        raise AssertionError(f" ${device}: scroll_need_element not found")
+
+
+#

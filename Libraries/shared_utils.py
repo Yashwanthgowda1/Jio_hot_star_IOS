@@ -10,7 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 import sys
 import shutil
 
-
+from collections import OrderedDict
 from robot.api import logger
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support.ui import WebDriverWait
@@ -114,8 +114,10 @@ def get_top_level_device_port(device):
     return port
 
 
-def take_screenshot(driver, device_name, base_log_dir):
+def take_screenshot(driver, device_name, locator_key):
     timestamp = time.strftime("%Y%m%d_%H%M%S")
+    # both are same  use cases
+    # timestamp = datetime.now().strftime("%y%m%d-%H%M%S")
 
     # Root folder (your custom directory)
     directory_name = "screenshots"
@@ -125,7 +127,7 @@ def take_screenshot(driver, device_name, base_log_dir):
     os.makedirs(root_dir, exist_ok=True)
 
     # Device-specific folder inside "logs and screenshots"
-    screenshot_dir = os.path.join(root_dir, base_log_dir)
+    screenshot_dir = os.path.join(root_dir, locator_key)
     os.makedirs(screenshot_dir, exist_ok=True)
 
     # Final file path
@@ -143,8 +145,9 @@ def take_screenshot(driver, device_name, base_log_dir):
 @auto_handle_appium_errors()
 def find_element(device, locator_dict, locator_key, timeout=10, single_element=True):
     # Convert single device → list
+    # isinstncewill chekc the object and ther type
     devices = [device] if isinstance(device, str) else device
-
+    locator_found = False
     for dev in devices:
         # --------------------------------------
         # 1️⃣ Ensure driver exists
@@ -165,7 +168,9 @@ def find_element(device, locator_dict, locator_key, timeout=10, single_element=T
             by_map = {
                 "xpath": AppiumBy.XPATH,
                 "xpath1": AppiumBy.XPATH,
+                # content-desc
                 "id": AppiumBy.ACCESSIBILITY_ID,
+                # resource - id
                 "id2": AppiumBy.ID,
                 "class_name": AppiumBy.CLASS_NAME,
                 "android_ui_automator": AppiumBy.ANDROID_UIAUTOMATOR,
@@ -188,19 +193,29 @@ def find_element(device, locator_dict, locator_key, timeout=10, single_element=T
                     elem = WebDriverWait(driver, timeout).until(
                         EC.presence_of_element_located((by, loc_value))
                     )
+                    if elem:
+                        locator_found = True
+
+                # """presence of all the elements in page """
                 else:
                     elem = WebDriverWait(driver, timeout).until(
                         EC.presence_of_all_elements_located((by, loc_value))
                     )
+                    if elem:
+                        locator_found = True
 
                 print(f"[{dev}]  Element found: {locator_key}")
                 return elem
 
             except Exception:
                 print(f"[{dev}]  Locator failed: {locator_key} → trying next")
+                #         not required jst for debug continue
+                continue
 
-        take_screenshot(driver, dev, f"{locator_key}_not_found")
-        raise Exception(f"[{dev}]  Element '{locator_key}' NOT FOUND")
+        if not locator_found:
+            print(f"[{dev}] All locators failed")
+            take_screenshot(driver, dev, f"{locator_key}_not_found")
+            raise Exception(f"[{dev}] Element '{locator_key}' NOT FOUND")
 
 
 def find_elements(devices, locator_dict, locator_key, timeout=10):
@@ -211,7 +226,7 @@ def find_elements(devices, locator_dict, locator_key, timeout=10):
 
 def load_loctors(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        return json.load(f, object_pairs_hook=OrderedDict)
 
 
 def click_if_visible(devices, locator_dict, locator_key):
@@ -290,7 +305,7 @@ def swipe_till_end(device):
 
 def swipe_left(device):
     driver = device_manager.get_existing_driver(device)
-    size = device.get_window_size()
+    size = driver.get_window_size()
 
     start_x = int(size["width"] * 0.8)  # right side
     end_x = int(size["width"] * 0.2)  # left side
@@ -307,7 +322,7 @@ def swipe_left_multiple(device, count=3):
 
 def swipe_right(device):
     driver = device_manager.get_existing_driver(device)
-    size = device.get_window_size()
+    size = driver.get_window_size()
 
     start_x = int(size["width"] * 0.2)  # left side
     end_x = int(size["width"] * 0.8)  # right side
@@ -407,10 +422,12 @@ def get_action_chain_object(
         action = ActionChains(driver)
         action.move_to_element(src).perform()
 
+
 def is_port_open(port):
     """Check if a TCP port is already in use."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('localhost', port)) == 0
+        return s.connect_ex(("localhost", port)) == 0
+
 
 def wait_for_accept_appium_connection(port, timeout=35):
     """Wait until Appium server responds on /wd/hub/status"""
@@ -431,6 +448,7 @@ def wait_for_accept_appium_connection(port, timeout=35):
 
     return False, timeout
 
+
 def find_appium_executable():
     """
     Find the Appium executable.
@@ -444,7 +462,7 @@ def find_appium_executable():
     # 2. Windows default global npm location
     if sys.platform.startswith("win"):
         npm_global = "appium"
-        return  npm_global
+        return npm_global
 
     # 3. Linux / Mac default global npm location
     default_npm = "/usr/local/bin/appium"
@@ -455,6 +473,7 @@ def find_appium_executable():
         "Appium executable not found. Install Appium globally or add it to PATH."
     )
 
+
 def start_appium_background(device):
     """
     Start Appium server in the background.
@@ -463,21 +482,22 @@ def start_appium_background(device):
     """
     port = random.randint(4500, 5000)
     appium_executable = find_appium_executable()
-
+    print(f" the appium executable is --> ${appium_executable}")
     if is_port_open(port):
         print(f"Appium is already running on port {port}, continuing...")
     else:
         print(f"Starting Appium on port {port} for device {device}...")
-        subprocess.Popen(
-            [appium_executable, "-p", str(port)],
-            shell=True
-        )
-
-    # Wait until Appium server is ready
+        subprocess.Popen([appium_executable, "-p", str(port)], shell=True)
+    print(
+        "<----------------------- uptio here the appium auto lanuched and get the cmd --------------->"
+    )
+    # Wait until Appium server is ready status check
     flag, waited_time = wait_for_accept_appium_connection(port=port, timeout=35)
     if flag:
         print(f"Appium ready on port {port} after {waited_time:.2f}s")
     else:
-        raise RuntimeError(f"Appium server on port {port} did not start in {waited_time}s")
+        raise RuntimeError(
+            f"Appium server on port {port} did not start in {waited_time}s"
+        )
 
     return port

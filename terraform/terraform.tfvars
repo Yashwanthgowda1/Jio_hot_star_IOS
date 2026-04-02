@@ -15,6 +15,7 @@ igw_name = "igw-demo"
 nat_gateway = ""     #if declred in varibale give umy values
 
 
+
 # ─── ec2 ──────────────────────────────────────────────
 aws_instance          = "shared_jio_hotstart_pipelines"
 instance_type         = "t3.medium"

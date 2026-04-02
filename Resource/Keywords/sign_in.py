@@ -20,6 +20,7 @@ class sign_in:
 
             # Call the original function
             return func(self, device, *args, **kwargs)
+
         return wrapper
 
     # Method to launch app
@@ -54,24 +55,27 @@ class sign_in:
             device, 5, "waiting to load the continue for location"
         )
         info_allow_access_loc_window = shared_utils.find_element(
-            device, home_page_dict, "home_page_location_enable_popups_window"
+            device,
+            home_page_dict,
+            "home_page_location_enable_popups_window",
+            timeout=20,
         )
         copy = info_allow_access_loc_window
-        print("the values is clicked ")
+
         if info_allow_access_loc_window:
             info_allow_access_loc_window.click()
+            print("the values is clicked ")
             print("waiting for clicking")
             shared_utils.sleep_with_msg(
                 device, 5, "waiting to load the continue for location"
             )
             # shared_utils.find_element(device, home_page_dict, "allow_access").click()
+            # remove feature
             elmsnt_dialog = shared_utils.find_element(
                 device, home_page_dict, "permission_dialog_info"
             )
-            if elmsnt_dialog:
-                shared_utils.find_element(
-                    device, home_page_dict, "only_this_time"
-                ).click()
+
+            shared_utils.find_element(device, home_page_dict, "only_this_time").click()
 
         try:
             element_visible = shared_utils.find_element(

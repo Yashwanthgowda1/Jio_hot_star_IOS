@@ -63,6 +63,7 @@ jobs:
           terraform apply -auto-approve -var-file="terraform.tfvars"
           
       - name: Destroy on Failure
-        if: failure()
+        if: success()
         working-directory: terraform
+        
         run: terraform destroy -auto-approve
