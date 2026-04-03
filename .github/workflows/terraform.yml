@@ -64,6 +64,18 @@ jobs:
           echo 'key_pairs = "${{ secrets.AWS_KEY_PAIR }}"' >> terraform.tfvars
           terraform apply -auto-approve -var-file="terraform.tfvars"
           
+
+
+    # Save the Terraform state file as an artifact
+      - name: Collect Terraform Outputs
+        if: success()
+        working-directory: terraform
+        run: |
+          echo "Saving Terraform outputs to project folder..."
+          terraform output -json > ../terraform_outputs.json    
+
+
+
       - name: Destroy on Failure
         if: success()
         working-directory: terraform

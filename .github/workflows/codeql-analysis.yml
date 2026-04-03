@@ -15,14 +15,11 @@ jobs:
 
     permissions:
       actions: read
-      security-events: read 
-      attestations: read
+      security-events: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GIT_PAT }}
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
