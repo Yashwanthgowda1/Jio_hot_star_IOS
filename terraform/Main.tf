@@ -47,8 +47,8 @@ module "ec2_vpc_infrastructure" {
 resource "local_file" "ansible_inventory" {
   # cannot use the modules value access , because it is not a direct output but we take output and values then access inside the resource
     content = templatefile("${path.module}/inventory.tpl", {
-      
-      instances = module.ec2_vpc_infrastructure.instances
+
+      instances = module.ec2_vpc_infrastructure.instance_ips
     })
 
     # it will take the foler of inventory.ini as the path and create the file 

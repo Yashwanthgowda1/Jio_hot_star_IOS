@@ -9,6 +9,6 @@ output "instence_state" {
   value = aws_instance.public_app.instance_state
 }
 
-output "instance_id" {
-  value = aws_instance.public_app.id
+output "instance_ips" {
+  value = aws_instance.public_app.public_ip
 }
