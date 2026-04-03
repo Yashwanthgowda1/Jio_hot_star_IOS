@@ -2,7 +2,7 @@
 aws_region = "ap-south-1"
 
 # ─── environment ──────────────────────────────────────
-selected_env = "dev"
+selected_env = ["dev", "prod", "staging"]
 
 # ─── vpc ──────────────────────────────────────────────
 vpc_cretion          = "ci_cd_pipelineflow"

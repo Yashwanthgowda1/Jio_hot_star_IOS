@@ -36,9 +36,6 @@ robotframework-databaselibrary==1.2.4
 Pillow==12.1.1
 black==26.3.1
 
-# WebDriver Manager (optional, not used in GitHub actions)
-webdriver-manager==4.0.1
-
 # Reporting & Metrics
 robotframework-metrics==3.3.3
 # robotframework-xunit==1.0.0
