@@ -12,3 +12,6 @@ output "instence_state" {
 output "instance_id" {
   value = module.ec2_vpc_infrastructure.instance_id
 }
+output "instances" {
+ value = module.ec2_vpc_infrastructure.instances 
+}

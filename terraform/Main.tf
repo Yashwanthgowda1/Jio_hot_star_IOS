@@ -40,3 +40,18 @@ module "ec2_vpc_infrastructure" {
   # resolved at apply time — data source interpolation not allowed in variable defaults
   my_ip = "${chomp(data.http.my_ip.response_body)}/32"
 }
+
+
+
+
+resource "local_file" "ansible_inventory" {
+  # cannot use the modules value access , because it is not a direct output but we take output and values then access inside the resource
+    content = templatefile("${path.module}/inventory.tpl", {
+      
+      instances = module.ec2_vpc_infrastructure.instances
+    })
+
+    # it will take the foler of inventory.ini as the path and create the file 
+    filename = "${path.module}/../Ansible_configuration/Inventory.ini"
+
+  }
