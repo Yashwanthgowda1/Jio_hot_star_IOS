@@ -42,6 +42,8 @@ module "ec2_vpc_infrastructure" {
 }
 
 
+
+
 resource "local_file" "ansible_inventory" {
     content = templatefile("${path.module}/inventory.tpl", {
       instances = aws_instance.server
