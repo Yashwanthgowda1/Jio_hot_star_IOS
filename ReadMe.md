@@ -32,9 +32,10 @@ there 2 types of volume:
             
 
          <!-- -------------------------------------------------------------- -->
-                    output "instances" {
+         
+          3.           output "instances" {
                         value = {    <-- in dictonery format>
-                            var.selected_env = [    <-- in which env >
+                            (var.selected_env) = [    <-- in which env >
                             for inst in aws_instance.public_app : {   <-- in dict  form >
                                 public_ip = inst.public_ip
                 }
@@ -72,6 +73,6 @@ means ->: pass the private key stored in the secrates of github while runnig the
 
     Example:
 
-            #### ansible-playbook -i inventory.ini deploy.yml --ask-pass
+            ### ansible-playbook -i inventory.ini deploy.yml --ask-pass
 
 
