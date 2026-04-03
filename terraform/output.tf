@@ -12,6 +12,19 @@ output "instence_state" {
 output "instance_id" {
   value = module.ec2_vpc_infrastructure.instance_id
 }
+
+output "instance_ips" {
+ value = module.ec2_vpc_infrastructure.instance_ips
+}
+
+
 output "instances" {
- value = module.ec2_vpc_infrastructure.instances 
+  value = {
+    var.selected_env = [
+      for inst in aws_instance.public_app : {
+        public_ip = inst.public_ip
+      }
+    ]
+  }
+
 }
