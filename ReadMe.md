@@ -32,9 +32,10 @@ there 2 types of volume:
             
 
          <!-- -------------------------------------------------------------- -->
+         
           3.           output "instances" {
                         value = {    <-- in dictonery format>
-                            var.selected_env = [    <-- in which env >
+                            (var.selected_env) = [    <-- in which env >
                             for inst in aws_instance.public_app : {   <-- in dict  form >
                                 public_ip = inst.public_ip
                 }
@@ -55,7 +56,6 @@ there 2 types of volume:
 
             }
 
-
 ### Ansible setups and pre-reqasits
 
 when need to pass the private key to ansible then we need to use the bind mount and pass the path of private key in the host machine to the container and then use that path in the ansible command to run the playbook
@@ -73,6 +73,6 @@ means ->: pass the private key stored in the secrates of github while runnig the
 
     Example:
 
-            #### ansible-playbook -i inventory.ini deploy.yml --ask-pass
+            ### ansible-playbook -i inventory.ini deploy.yml --ask-pass
 
 

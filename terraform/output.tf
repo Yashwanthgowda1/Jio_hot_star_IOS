@@ -5,26 +5,29 @@ output "instence_type" {
   value = module.ec2_vpc_infrastructure.instence_type
 }
 
-output "instence_state" {
+output "instence_ips" {
+  value = module.ec2_vpc_infrastructure.instance_ips
+}
+
+output "instance_state" {
   value = module.ec2_vpc_infrastructure.instence_state
 }
 
-output "instance_id" {
-  value = module.ec2_vpc_infrastructure.instance_id
+output "instance_profile" {
+  value = aws_instance.public_app.iam_instance_profile
+  
 }
-
-output "instance_ips" {
- value = module.ec2_vpc_infrastructure.instance_ips
-}
-
-
 output "instances" {
-  value = {
-    var.selected_env = [
-      for inst in aws_instance.public_app : {
-        public_ip = inst.public_ip
-      }
-    ]
-  }
-
+  value = module.ec2_vpc_infrastructure.instances
+  
 }
+
+# output "instances" {
+#   value = {
+#     var.selected_env = [
+#       for inst in aws_instance.public_app : {
+#         public_ip = inst.public_ip
+#       }
+#     ]
+#   }
+# }

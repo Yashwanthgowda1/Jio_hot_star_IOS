@@ -21,14 +21,10 @@ output "instance_tagnecy" {
   value = aws_instance.public_app.tags
 }
 
-output "instance" {
-  value = aws_instance.public_app
-  
-}
 
 output "instances" {
   value = {
-    var.selected_env = [
+    (var.selected_env) = [
       for inst in aws_instance.public_app : {
         public_ip = inst.public_ip
       }
