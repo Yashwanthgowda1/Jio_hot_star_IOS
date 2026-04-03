@@ -31,6 +31,30 @@ there 2 types of volume:
             %{ endfor } 
             
 
+         <!-- -------------------------------------------------------------- -->
+                    output "instances" {
+                        value = {    <-- in dictonery format>
+                            var.selected_env = [    <-- in which env >
+                            for inst in aws_instance.public_app : {   <-- in dict  form >
+                                public_ip = inst.public_ip
+                }
+                ]
+            }
+            }    
+
+            ### like this 
+            values={
+                "dev" = [
+                    { public_ip = "3.14.159.26" },
+                    { public_ip = "3.14.159.27" }
+                ]   <--- list of dict form >
+                "prod" = [
+                    { public_ip = "178,78,93,8"}
+                ]
+
+
+            }
+
 ### Ansible setups and pre-reqasits
 
 when need to pass the private key to ansible then we need to use the bind mount and pass the path of private key in the host machine to the container and then use that path in the ansible command to run the playbook
