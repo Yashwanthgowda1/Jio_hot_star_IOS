@@ -14,7 +14,7 @@ output "instance_state" {
 }
 
 output "instance_profile" {
-  value = aws_instance.public_app.iam_instance_profile
+  value = module.ec2_vpc_infrastructure.instance_profile
   
 }
 output "instances" {
