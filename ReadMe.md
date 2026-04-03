@@ -32,7 +32,7 @@ there 2 types of volume:
             
 
          <!-- -------------------------------------------------------------- -->
-                    output "instances" {
+          3.           output "instances" {
                         value = {    <-- in dictonery format>
                             var.selected_env = [    <-- in which env >
                             for inst in aws_instance.public_app : {   <-- in dict  form >
@@ -54,6 +54,7 @@ there 2 types of volume:
 
 
             }
+
 
 ### Ansible setups and pre-reqasits
 

@@ -12,13 +12,9 @@ output "instence_state" {
 output "instance_id" {
   value = module.ec2_vpc_infrastructure.instance_id
 }
+
 output "instance_ips" {
  value = module.ec2_vpc_infrastructure.instance_ips
-}
-
-output "instance_profile" {
-  value = aws_instance.public_app.iam_instance_profile
-  
 }
 
 
@@ -30,4 +26,5 @@ output "instances" {
       }
     ]
   }
+
 }
