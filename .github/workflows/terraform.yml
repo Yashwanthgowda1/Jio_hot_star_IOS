@@ -1,5 +1,4 @@
-name: Terraform creation
-
+name: terraform
 on:
    push:
     branches: [ "QA_main"]
@@ -75,8 +74,7 @@ jobs:
           terraform output -json > ../terraform_outputs.json    
 
 
-      - name: Destroy on Failure
-        if: success()
-        working-directory: terraform
-        
-        run: terraform destroy -auto-approve
+      # - name: Destroy on Failure
+      #   if: success()
+      #   working-directory: terraform
+      #   run: terraform destroy -auto-approve

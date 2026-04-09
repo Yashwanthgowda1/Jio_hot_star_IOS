@@ -3,7 +3,7 @@ name: CI/CD Docker + Ansible
 on:
   workflow_run:
     workflows: 
-      - "Terraform creation"   # MUST match the name of the workflow that runs before
+      - "terraform"   # MUST match the name of the workflow that runs before
     types:
       - completed
 
@@ -49,3 +49,9 @@ jobs:
       - name: Run Ansible deploy
         run: |
           ansible-playbook ansible/site.yml -i Ansible_configuration/Inventory/Inventory.ini -e "TEST_ENV=${{ env.TEST_ENV }} VERSION=${{ env.VERSION }}"
+
+
+      - name: Destroy on Failure
+        if: success()
+        working-directory: terraform
+        run: terraform destroy -auto-approve
