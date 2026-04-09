@@ -3,7 +3,7 @@ name: CI/CD Docker + Ansible
 on:
   workflow_run:
     workflows: 
-      - "terraform"   # MUST match the name of the workflow that runs before
+      - "Terraform creation"   # MUST match the name of the workflow that runs before
     types:
       - completed
 
