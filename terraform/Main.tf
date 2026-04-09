@@ -28,7 +28,7 @@ module "ec2_vpc_infrastructure" {
 
   # environment
   environment  = var.environment
-  selected_env = [var.selected_env]
+  selected_env = var.selected_env
 
   # ec2
   aws_instance          = var.aws_instance
