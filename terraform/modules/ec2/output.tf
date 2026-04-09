@@ -1,33 +1,32 @@
 output "ami_id" {
-  value = aws_instance.public_app.ami
+  value = { for env, inst in aws_instance.public_app : env => inst.ami }
 }
 output "instence_type" {
-  value = aws_instance.public_app.instance_type
+  value = { for env, inst in aws_instance.public_app : env => inst.instance_type }
 }
 
 output "instence_state" {
-  value = aws_instance.public_app.instance_state
+  value = { for env, inst in aws_instance.public_app : env => inst.instance_state }
 }
 
 output "instance_ips" {
-  value = aws_instance.public_app.public_ip
+  value = { for env, inst in aws_instance.public_app : env => inst.public_ip }
 }
 
 output "instance_profile" {
-  value = aws_instance.public_app.iam_instance_profile
+  value = { for env, inst in aws_instance.public_app : env => inst.iam_instance_profile }
   
 }
 output "instance_tagnecy" {
-  value = aws_instance.public_app.tags
+  value = { for env, inst in aws_instance.public_app : env => inst.tags }
 }
 
 
 output "instances" {
   value = {
-    (var.selected_env) = [
-      for inst in aws_instance.public_app : {
-        public_ip = inst.public_ip
-      }
-    ]
+    for env, inst in aws_instance.public_app : env => {
+      public_ip = inst.public_ip
+      instance_id = inst.id
+    }
   }
 }
