@@ -34,7 +34,7 @@ variable "environment" {
 
 variable "selected_env" {
   description = "Active environment: dev / prod / stage"
-  type        = string
+  type        = list(string)
   # default     = "dev"
 }
 
