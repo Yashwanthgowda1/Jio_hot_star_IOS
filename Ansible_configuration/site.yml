@@ -1,0 +1,7 @@
+# all the deplyment and configuration will be done in this file main book
+- name: Base setup on all nodes
+  hosts: all
+  gather_facts: true
+  roles:
+    - roles/common
+    - roles/docker

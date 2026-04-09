@@ -1,4 +1,4 @@
-name: Terraform Deploy
+name: Terraform creation
 
 on:
    push:
@@ -73,7 +73,6 @@ jobs:
         run: |
           echo "Saving Terraform outputs to project folder..."
           terraform output -json > ../terraform_outputs.json    
-
 
 
       - name: Destroy on Failure

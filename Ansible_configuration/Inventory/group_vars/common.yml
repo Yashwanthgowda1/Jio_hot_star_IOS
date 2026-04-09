@@ -1,0 +1,11 @@
+# Global vars
+
+# untill k8s no use of this
+kubernetes_version: "1.28"
+pod_network_cidr: "10.244.0.0/16"   # Flannel default
+docker_version: "24.0"
+
+# App config
+app_namespace: ["hotstar", "hotstar-qa", "hotstar-stage"]
+# app_image: your-dockerhub/your-app:latest
+app_replicas: 3

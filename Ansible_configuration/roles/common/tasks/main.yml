@@ -1,0 +1,53 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/common
+---
+- name: Update apt cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install required base packages
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - vim
+      - net-tools
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - python3-pip
+    state: present
+
+# - name: Disable swap (required for K8s)
+#   command: swapoff -a
+#   when: ansible_swaptotal_mb > 0
+
+# - name: Remove swap from fstab permanently
+#   replace:
+#     path: /etc/fstab
+#     regexp: '^([^#].*\s+swap\s+.*)$'
+#     replace: '# \1'
+
+# - name: Enable kernel modules for K8s networking
+#   modprobe:
+#     name: "{{ item }}"
+#     state: present
+#   loop:
+#     - overlay
+#     - br_netfilter
+
+# - name: Set sysctl params for K8s
+#   sysctl:
+#     name: "{{ item.key }}"
+#     value: "{{ item.value }}"
+#     sysctl_set: true
+#     state: present
+#     reload: true
+#   loop:
+#     - { key: "net.bridge.bridge-nf-call-iptables",  value: "1" }
+#     - { key: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+#     - { key: "net.ipv4.ip_forward",                 value: "1" }
