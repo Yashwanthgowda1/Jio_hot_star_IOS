@@ -30,13 +30,13 @@ jobs:
       # Step 3: Build Docker image with environment + version tag
       - name: Build Docker image
         run: |
-          docker build -t myregistry.com/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }} .
+          docker build -t docker.io/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }} .
 
       # Step 4: Push Docker image to registry
       - name: Push Docker image
         run: |
-          echo "${{ env.DOCKER_PASS }}" | docker login myregistry.com -u ${{ env.DOCKER_USER }} --password-stdin 
-          docker push myregistry.com/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }}
+          echo "${{ env.DOCKER_PASS }}" | docker login docker.io -u ${{ env.DOCKER_USER }} --password-stdin 
+          docker push docker.io/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }}
 
       # Step 5: Install Ansible
       - name: Install Ansible
@@ -52,6 +52,6 @@ jobs:
 
 
       - name: Destroy on Failure
-        if: success()
+        if: failure()
         working-directory: terraform
         run: terraform destroy -auto-approve
