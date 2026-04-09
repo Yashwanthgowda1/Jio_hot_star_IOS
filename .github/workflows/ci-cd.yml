@@ -1,0 +1,51 @@
+name: CI/CD Docker + Ansible
+
+on:
+  workflow_run:
+    workflows: 
+      - "terraform"   # MUST match the name of the workflow that runs before
+    types:
+      - completed
+
+jobs:
+  build_image_push_and_deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [QA, STAGING, PROD]
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set environment variables and env trake the secrate specily hide in that env use it in the workflow
+      - name: Set environment variables
+        run: |
+          echo "DOCKER_USER=${{ secrets.DOCKER_USER }}" >> $GITHUB_ENV
+          echo "DOCKER_PASS=${{ secrets.DOCKER_PASS }}" >> $GITHUB_ENV
+          echo "TEST_ENV=${{ matrix.env }}" >> $GITHUB_ENV
+          echo "VERSION=1.2.0" >> $GITHUB_ENV   # Add version here
+
+      # Step 3: Build Docker image with environment + version tag
+      - name: Build Docker image
+        run: |
+          docker build -t myregistry.com/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }} .
+
+      # Step 4: Push Docker image to registry
+      - name: Push Docker image
+        run: |
+          echo "${{ env.DOCKER_PASS }}" | docker login myregistry.com -u ${{ env.DOCKER_USER }} --password-stdin 
+          docker push myregistry.com/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }}
+
+      # Step 5: Install Ansible
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible python3-pip
+          pip3 install "docker" "community.docker"
+
+      # Step 6: Run Ansible deploy playbook
+      - name: Run Ansible deploy
+        run: |
+          ansible-playbook ansible/site.yml -i Ansible_configuration/Inventory/Inventory.ini -e "TEST_ENV=${{ env.TEST_ENV }} VERSION=${{ env.VERSION }}"

@@ -75,7 +75,6 @@ jobs:
           terraform output -json > ../terraform_outputs.json    
 
 
-
       - name: Destroy on Failure
         if: success()
         working-directory: terraform
