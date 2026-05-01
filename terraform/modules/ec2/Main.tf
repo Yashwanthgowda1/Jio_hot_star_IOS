@@ -2,6 +2,15 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+locals {
+  public_subnets = {
+    public-1 = 0
+    public-2 = 1
+  }
+  active_env = var.selected_env[0]
+  env_names  = { for k in var.selected_env : k => var.environment[k] }
+}
+
 resource "aws_vpc" "vpc_creation" {
   cidr_block           = var.cidr_blocks
   enable_dns_hostnames = var.enable_dns_hostnames
@@ -9,7 +18,7 @@ resource "aws_vpc" "vpc_creation" {
   instance_tenancy     = "default"
   tags = {
     Name        = var.vpc_cretion
-    Environment = var.environment[var.selected_env]
+    Environment = var.environment[local.active_env]
   }
 }
 
@@ -26,8 +35,8 @@ resource "aws_subnet" "public_subnets" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc_creation.id
   tags = {
-    Name        = "${var.environment["dev"]}-internet-gateway"
-    Environment = var.environment[var.selected_env]
+    Name        = "${var.environment[local.active_env]}-internet-gateway"
+    Environment = var.environment[local.active_env]
   }
 }
 
@@ -40,7 +49,7 @@ resource "aws_route_table" "public_rt" {
   }
 
   tags = {
-    Name = "${var.environment[var.selected_env]}-public-rt"
+    Name = "${var.environment[local.active_env]}-public-rt"
   }
 }
 
@@ -88,21 +97,23 @@ resource "aws_security_group" "public_sg" {
   }
 
   tags = {
-    Name        = "${var.environment[var.selected_env]}-public-sg"
-    Environment = var.environment[var.selected_env]
+    Name        = "${var.environment[local.active_env]}-public-sg"
+    Environment = var.environment[local.active_env]
   }
 }
 
 resource "aws_instance" "public_app" {
+  for_each                    = local.env_names
   ami                         = var.aws_ami_values
   instance_type               = var.instance_type
   key_name                    = var.key_pairs
-  subnet_id                   = values(aws_subnet.public_subnets)[0].id
+                                                                      # [dev=0, prod=, qa=3] it picks index(0 ) ... 1 ...2 like that
+  subnet_id                   = values(aws_subnet.public_subnets)[index(keys(local.env_names), each.key) % length(aws_subnet.public_subnets)].id
   vpc_security_group_ids      = [aws_security_group.public_sg.id]
   associate_public_ip_address = var.aws_public_ip_enabled
 
   tags = {
-    Name        = "${var.aws_instance}-${var.environment[var.selected_env]}"
-    Environment = var.environment[var.selected_env]
+    Name        = "${var.aws_instance}-${each.value}"
+    Environment = each.value
   }
 }

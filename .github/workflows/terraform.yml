@@ -77,7 +77,7 @@ jobs:
 
 
       - name: Destroy on Failure
-        if: success()
+        if: success() | failure()
         working-directory: terraform
         
         run: terraform destroy -auto-approve
