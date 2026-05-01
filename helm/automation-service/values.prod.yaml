@@ -1,0 +1,21 @@
+replicaCount: 3
+
+env:
+  TEST_ENV: "prod"
+
+ingress:
+  host: automation.example.com
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"

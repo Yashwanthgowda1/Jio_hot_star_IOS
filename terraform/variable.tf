@@ -81,3 +81,40 @@ variable "aws_route_table" {
   type        = string
   default     = "route_table_demo_project"
 }
+
+# ── EKS Variables ─────────────────────────────────────────────────────────────
+variable "eks_cluster_name" {
+  description = "EKS cluster name"
+  type        = string
+  default     = "hotstar-ios-cluster"
+}
+
+variable "k8s_version" {
+  description = "Kubernetes version"
+  type        = string
+  default     = "1.29"
+}
+
+variable "node_instance_type" {
+  description = "EC2 instance type for EKS worker nodes"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "node_desired_size" {
+  description = "Desired number of EKS worker nodes"
+  type        = number
+  default     = 2
+}
+
+variable "node_min_size" {
+  description = "Minimum EKS worker nodes"
+  type        = number
+  default     = 1
+}
+
+variable "node_max_size" {
+  description = "Maximum EKS worker nodes"
+  type        = number
+  default     = 5
+}

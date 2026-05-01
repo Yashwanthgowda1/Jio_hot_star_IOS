@@ -29,3 +29,13 @@ output "instances" {
     }
   }
 }
+
+output "subnet_ids" {
+  description = "Public subnet IDs — passed to EKS module for worker node placement"
+  value       = [for s in aws_subnet.public_subnets : s.id]
+}
+
+output "security_group_ids" {
+  description = "Security group IDs — passed to EKS module"
+  value       = [aws_security_group.public_sg.id]
+}

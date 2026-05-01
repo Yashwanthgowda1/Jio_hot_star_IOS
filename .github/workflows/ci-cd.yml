@@ -26,7 +26,6 @@ jobs:
         with:
           token: ${{ secrets.GIT_PAT }}
 
-
       # Step 2: Set environment variables — secrets hidden in GitHub, passed into workflow
       - name: Set environment variables
         run: |
@@ -35,7 +34,7 @@ jobs:
           echo "TEST_ENV=${{ matrix.env }}" >> $GITHUB_ENV
           echo "VERSION=1.2.0" >> $GITHUB_ENV
 
-      # Step 3: Build Docker image — passes TEST_ENV as build-arg so Dockerfile ARG receives it  , --build-arg in runtime
+      # Step 3: Build Docker image — passes TEST_ENV as build-arg so Dockerfile ARG receives it
       - name: Build Docker image
         run: |
           docker build \
@@ -53,8 +52,9 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ansible python3-pip
+          pip3 install kubernetes
 
-      # Step 6: Run Ansible deploy — pulls image from registry and runs on server
+      # Step 6: Run Ansible — installs docker + kubectl + helm on server, sets up k8s namespace
       - name: Run Ansible deploy
         run: |
           ansible-playbook Ansible_configuration/site.yml \
@@ -62,7 +62,30 @@ jobs:
             -e "TEST_ENV=${{ env.TEST_ENV }}" \
             -e "VERSION=${{ env.VERSION }}"
 
-      # Step 7: Destroy only app infra if any step above fails
+      # Step 7: Deploy app to K8s using Helm with env specific values file
+      - name: Helm deploy to K8s
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ secrets.AWS_REGION }} \
+            --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+          helm upgrade --install automation-service ./helm/automation-service \
+            --namespace ${{ env.TEST_ENV | lowercase }} \
+            --create-namespace \
+            -f helm/automation-service/values.${{ env.TEST_ENV | lowercase }}.yaml \
+            --set image.repository=docker.io/${{ env.DOCKER_USER }}/automation-service \
+            --set image.tag=${{ env.TEST_ENV }}-${{ env.VERSION }} \
+            --atomic \
+            --timeout 5m
+
+      # Step 8: Rollback helm if deploy failed
+      - name: Helm Rollback on Failure
+        if: failure()
+        run: |
+          helm rollback automation-service \
+            --namespace ${{ env.TEST_ENV | lowercase }}
+
+      # Step 9: Destroy only app infra if any step above fails
       - name: Destroy on Failure
         if: failure()
         working-directory: terraform

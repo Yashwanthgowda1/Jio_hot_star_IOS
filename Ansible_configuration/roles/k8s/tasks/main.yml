@@ -1,0 +1,53 @@
+---
+- name: install kubectl
+  apt:
+    name: kubectl
+    state: present
+    update_cache: true
+  become: true
+
+- name: install helm
+  shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+  become: true
+
+- name: create namespace for environment
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ k8s_namespace }}"
+        labels:
+          env: "{{ k8s_namespace }}"
+
+- name: create docker registry secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: docker-registry-secret
+        namespace: "{{ k8s_namespace }}"
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: "{{ lookup('env', 'DOCKER_CONFIG_JSON') }}"
+
+- name: deploy app using helm
+  kubernetes.core.helm:
+    name: automation-service
+    chart_ref: "{{ playbook_dir }}/../../helm/automation-service"
+    release_namespace: "{{ k8s_namespace }}"
+    create_namespace: true
+    values:
+      image:
+        repository: "docker.io/{{ docker_registry_user }}/automation-service"
+        tag: "{{ k8s_namespace }}-{{ app_version }}"
+      env:
+        TEST_ENV: "{{ k8s_namespace }}"
+      replicaCount: "{{ app_replicas }}"
+  notify: verify helm release

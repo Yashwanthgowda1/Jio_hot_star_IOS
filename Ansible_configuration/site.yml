@@ -1,7 +1,13 @@
-# all the deplyment and configuration will be done in this file main book
+# all the deployment and configuration will be done in this file main book
 - name: Base setup on all nodes
   hosts: all
   gather_facts: true
   roles:
     - roles/common
     - roles/docker
+
+- name: K8s setup and app deploy
+  hosts: all
+  gather_facts: true
+  roles:
+    - roles/k8s

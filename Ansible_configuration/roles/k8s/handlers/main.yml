@@ -1,0 +1,13 @@
+---
+- name: verify helm release
+  kubernetes.core.helm_info:
+    name: automation-service
+    release_namespace: "{{ k8s_namespace }}"
+  register: helm_status
+
+- name: rollback if deploy failed
+  kubernetes.core.helm:
+    name: automation-service
+    release_namespace: "{{ k8s_namespace }}"
+    state: absent
+  when: helm_status.status is defined and helm_status.status.info.status != 'deployed'
