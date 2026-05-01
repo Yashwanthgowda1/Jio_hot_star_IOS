@@ -8,8 +8,8 @@ services:
 
 
     environment:
-      - TEST_ENV=QA
-
+       - TEST_ENV=${TEST_ENV}
+    
     volumes:
       - /data/results:/mnt/results   # run: mkdir -p /data/results on host first
 

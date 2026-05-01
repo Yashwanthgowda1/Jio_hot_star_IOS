@@ -2,7 +2,8 @@ name: Production security scan
 
 on:
   workflow_run:
-    workflows: ["codeql-analysis"]   # MUST match name
+    workflows: 
+      - "codeql-analysis"   # MUST match name
     types:
       - completed
     # branches: ["main" , "QA_main"]

@@ -7,6 +7,12 @@ RUN_ID=$(date +%Y%m%d-%H%M%S)
 echo "Running with RUN_ID=$RUN_ID, TEST_ENV=$TEST_ENV"
 
 mkdir -p /mnt/results/$TEST_ENV/$RUN_ID
+
+docker container prune -f
+docker image prune -af
+docker volume prune -f
+docker network prune -f
+
 # RUN THE TEST CASES
 robot -d /mnt/results/$TEST_ENV/$RUN_ID  -i "@web" Test
 
