@@ -11,6 +11,17 @@ locals {
   env_names  = { for k in var.selected_env : k => var.environment[k] }
 }
 
+
+
+
+#  Result (flat list):
+# [
+#   { key="dev-public-1",  env="dev",  index=0 },
+#   { key="dev-public-2",  env="dev",  index=1 },
+#   { key="prod-public-1", env="prod", index=0 },
+#   { key="prod-public-2", env="prod", index=1 },
+# ]
+
 resource "aws_vpc" "vpc_creation" {
   cidr_block           = var.cidr_blocks
   enable_dns_hostnames = var.enable_dns_hostnames

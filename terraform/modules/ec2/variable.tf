@@ -1,9 +1,9 @@
-locals {
-  public_subnets = {
-    public-1 = 0
-    public-2 = 1
-  }
-}
+# locals {
+#   public_subnets = {
+#     public-1 = 0
+#     public-2 = 1
+#   }
+# }
 # loacl resticted inside the module
 
 # variable allow to pass the values from user
