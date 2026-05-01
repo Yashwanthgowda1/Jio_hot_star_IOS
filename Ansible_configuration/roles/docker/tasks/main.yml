@@ -1,33 +1,29 @@
 ---
 - name: installtion of the docker
-  apt: 
+  apt:
     name: docker.io
     state: present  # skip if alredy exist
-    update_cache: yes
-  become: yes
+    update_cache: true
+    # this is folder particuler things
+  become: true
   notify: restart docker   # this triggers the handler after task completion
-
 
 - name: install the docker compose
   apt:
     name:
       - docker-compose
     state: present  # skip if alredy exist
-    become: yes
+  become: true
 
 - name: add user to docker group
-  user: 
+  user:
     name: "{{ ansible_user }}"   # THIS ANSIBLE_USER IS inbuit comming from ansible like ubuntu
     groups: docker
-    append: yes
+    append: true
     state: present
 
-
-
-
-
+# store the value from the cicd and pass it to the docker login bys ame name so that it can be used here
 - name: login to docker hub private registery for pulling the images
-# store the value from the cicd and pass it to the docker login  bys ame name so that it can be used here
   community.docker.docker_login:
     registry_url: "{{ docker_registry_url }}"
     username: "{{ docker_registry_username }}"
@@ -36,39 +32,39 @@
 - name: pull image from the docker hub private registery
   community.docker.docker_image:
     name: "{{ app_image }}"
-    # ansible-playbook deploy.yml -e "TEST_ENV=$ENV"  this fact used in k8s image deply in pods 
-    source: pull    
-  
+    # ansible-playbook deploy.yml -e "TEST_ENV=$ENV"  this fact used in k8s image deply in pods
+    source: pull
+
 - name: verify the version of the docker
   command: docker --version
   register: docker_version_output
 
 - name: save the logs in the file
   ansible.builtin.copy:
-  content: "{{ docker_version_output.stdout }}"
-  dest:  /tmp/docker_version_output.log
+    content: "{{ docker_version_output.stdout }}"
+    dest: /tmp/docker_version_output.log
 
 - name: ecah time run save the logs in time stamp
   ansible.builtin.copy:
-  content: "{{ docker_version_output.stdout }}"
-  dest: "/tmp/docker_version_{{ ansible_date_time.iso8601 }}.log"
+    content: "{{ docker_version_output.stdout }}"
+    dest: "/tmp/docker_version_{{ ansible_date_time.iso8601 }}.log"
 
-
+# add the all in one main file
 - name: Append Docker version to master log file central registery
   ansible.builtin.lineinfile:
     path: /tmp/docker_images_status.log
     line: "{{ ansible_date_time.iso8601 }} | {{ docker_version_output.stdout }}"
-    create: yes
+    create: true
     mode: '0644'
   tags:
     - docker
 
-# final log store conatin the history to loac repo
+# final log store conatin the history to loacl repo
 - name: Fetch fixed Docker log to local project folder
   ansible.builtin.fetch:
     src: /tmp/docker_version_output.log   # source on remote host
     dest: ./results/ansible/ansible_docker.log    # destination in local project
-    flat: yes
+    flat: true
   tags:
     - docker
 
@@ -76,9 +72,6 @@
   ansible.builtin.fetch:
     src: "/tmp/docker_version_{{ ansible_date_time.iso8601 }}.log"
     dest: "./results/ansible/"
-    flat: yes
+    flat: true
   tags:
     - docker
-
-  
-   

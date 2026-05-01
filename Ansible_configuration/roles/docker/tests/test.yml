@@ -2,5 +2,7 @@
 ---
 - hosts: localhost
   remote_user: root
+  become: true
+  gather_facts: true
   roles:
-    - roles/common
+    - docker
