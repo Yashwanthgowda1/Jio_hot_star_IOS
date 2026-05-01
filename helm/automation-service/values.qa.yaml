@@ -1,0 +1,15 @@
+replicaCount: 1
+
+env:
+  TEST_ENV: "qa"
+
+ingress:
+  host: automation.qa.example.com
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"

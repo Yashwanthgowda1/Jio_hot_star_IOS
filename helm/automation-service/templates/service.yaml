@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-svc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+    env: {{ .Values.env.TEST_ENV }}
+spec:
+  type: {{ .Values.service.type }}   # ClusterIP — ingress handles external traffic
+  selector:
+    app: {{ .Release.Name }}         # routes to pods with this label
+    env: {{ .Values.env.TEST_ENV }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}

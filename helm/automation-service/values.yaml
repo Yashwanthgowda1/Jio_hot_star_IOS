@@ -1,0 +1,39 @@
+# default values — overridden per env by helm --set or -f values.qa.yaml
+replicaCount: 2
+
+image:
+  repository: docker.io/DOCKER_USER/automation-service
+  tag: "QA-1.0.0"
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: docker-registry-secret
+
+env:
+  TEST_ENV: "QA"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  host: automation.qa.example.com
+  path: /
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+shm_size: "2Gi"

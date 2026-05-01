@@ -1,0 +1,8 @@
+---
+# vars for k8s role — reads from CI/CD environment
+k8s_namespace:        "{{ lookup('env', 'TEST_ENV') | lower }}"
+app_image:            "{{ lookup('env', 'APP_IMAGE') }}"
+app_version:          "{{ lookup('env', 'VERSION') }}"
+docker_registry_user: "{{ lookup('env', 'DOCKER_USER') }}"
+app_replicas:         2
+app_port:             8000

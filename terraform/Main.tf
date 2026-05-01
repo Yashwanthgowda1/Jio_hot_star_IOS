@@ -46,13 +46,29 @@ module "ec2_vpc_infrastructure" {
 
 resource "local_file" "ansible_inventory" {
   # cannot use the modules value access , because it is not a direct output but we take output and values then access inside the resource
-    content = templatefile("${path.module}/inventory.tpl", {
+  content = templatefile("${path.module}/inventory.tpl", {
+    instances = module.ec2_vpc_infrastructure.instances
+  })
 
-      instances = module.ec2_vpc_infrastructure.instances
+  # it will take the foler of inventory.ini as the path and create the file
+  filename = "${path.module}/../Ansible_configuration/Inventory/Inventory.ini"
+}
 
-    })
+# ── EKS Cluster Module ───────────────────────────────────────────────────────
+module "eks" {
+  source = "./modules/eks"
 
-    # it will take the foler of inventory.ini as the path and create the file 
-    filename = "${path.module}/../Ansible_configuration/Inventory/Inventory.ini"
+  cluster_name       = var.eks_cluster_name
+  k8s_version        = var.k8s_version
+  selected_env       = var.selected_env[0]
 
-  }
+  # reuse subnets and security groups already created by EC2 module
+  subnet_ids         = module.ec2_vpc_infrastructure.subnet_ids
+  security_group_ids = module.ec2_vpc_infrastructure.security_group_ids
+
+  # worker node config
+  node_instance_type = var.node_instance_type
+  node_desired_size  = var.node_desired_size
+  node_min_size      = var.node_min_size
+  node_max_size      = var.node_max_size
+}
