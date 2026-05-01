@@ -37,7 +37,7 @@ variable "environment" {
 }
 
 variable "selected_env" {
-  description = "Select the environments to use: dev / prod / stage"
+  description = "Select the environment to use: dev / prod / stage"
   type        = list(string)
   default     = ["dev"]
 }

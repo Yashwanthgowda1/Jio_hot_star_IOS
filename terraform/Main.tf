@@ -42,7 +42,7 @@ module "ec2_vpc_infrastructure" {
 }
 
 
-
+# templatefile = reads a .tpl file and fills in the variables:
 
 resource "local_file" "ansible_inventory" {
   # cannot use the modules value access , because it is not a direct output but we take output and values then access inside the resource

@@ -34,8 +34,8 @@ variable "environment" {
 
 variable "selected_env" {
   description = "Active environment: dev / prod / stage"
-  type        = list(string)
-  # default     = "dev"
+  type    = list(string)
+  default     = ["dev"]
 }
 
 variable "aws_instance" {
