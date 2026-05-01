@@ -1,9 +1,7 @@
 
-%{ for env, instances_list in instances }
+%{ for env, instance_data in instances }
 [${env}]
-%{ for instance in instances_list }
-${instance.public_ip} ansible_user=ubuntu
-%{ endfor }
+${instance_data.public_ip} ansible_user=ubuntu
 %{ endfor }
 
 

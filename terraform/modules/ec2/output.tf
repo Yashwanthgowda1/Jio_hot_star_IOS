@@ -19,7 +19,7 @@ output "instance_profile" {
 }
 
 output "instance_tagnecy" {
-  value = { for k, inst in aws_instance.public_app : k =>{ inst.tags} }
+  value = { for k, inst in aws_instance.public_app : k => inst.tags}
 }
 
 output "instances" {

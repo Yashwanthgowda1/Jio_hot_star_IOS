@@ -53,6 +53,6 @@ resource "local_file" "ansible_inventory" {
     })
 
     # it will take the foler of inventory.ini as the path and create the file 
-    filename = "${path.module}/../Ansible_configuration/Inventory.ini"
+    filename = "${path.module}/../Ansible_configuration/Inventory/Inventory.ini"
 
   }

@@ -1,5 +1,4 @@
-name: Terraform Deploy
-
+name: terraform
 on:
    push:
     branches: [ "QA_main"]
@@ -77,10 +76,9 @@ jobs:
           echo "Saving Terraform outputs to project folder..."
           terraform output -json > ../terraform_outputs.json    
 
-
-
       - name: Destroy on Failure
-        if: success() | failure()
+        if: success() || failure()
         working-directory: terraform
-        
+    
         run: terraform destroy -auto-approve
+
