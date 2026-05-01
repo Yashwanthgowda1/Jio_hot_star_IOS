@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   terraform:
-    name: Terraform
+    name: terraform
     runs-on: ubuntu-latest
 
     steps:
@@ -82,7 +82,7 @@ jobs:
           terraform output -json > ../terraform_outputs.json    
 
       - name: Destroy on Failure
-        if: success() || failure()
+        if:  failure()
         working-directory: terraform
     
         run: terraform destroy -auto-approve

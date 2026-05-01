@@ -35,7 +35,9 @@ COPY --from=build /root/.local /root/.local
 
 ENV PATH="/root/.local/bin:$PATH"
 ENV PYTHONPATH=/Automation
-ENV TEST_ENV=QA
+# Manual Build (local) — uses default ARG
+ARG TEST_ENV=QA
+ENV TEST_ENV=${TEST_ENV}
 
 COPY . /Automation
 

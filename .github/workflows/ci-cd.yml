@@ -2,15 +2,20 @@ name: CI/CD Docker + Ansible
 
 on:
   workflow_run:
-    workflows: 
+    workflows:
       - "terraform"   # MUST match the name of the workflow that runs before
     types:
       - completed
+    branches:
+      - "QA_main"     # only trigger when terraform runs on QA_main
 
 jobs:
   build_image_push_and_deploy:
+    # only run if terraform workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     strategy:
+      # All 3 run at the same time (parallel)
       matrix:
         env: [QA, STAGING, PROD]
 
@@ -18,40 +23,47 @@ jobs:
       # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GIT_PAT }}
 
-      # Step 2: Set environment variables and env trake the secrate specily hide in that env use it in the workflow
+
+      # Step 2: Set environment variables — secrets hidden in GitHub, passed into workflow
       - name: Set environment variables
         run: |
           echo "DOCKER_USER=${{ secrets.DOCKER_USER }}" >> $GITHUB_ENV
           echo "DOCKER_PASS=${{ secrets.DOCKER_PASS }}" >> $GITHUB_ENV
           echo "TEST_ENV=${{ matrix.env }}" >> $GITHUB_ENV
-          echo "VERSION=1.2.0" >> $GITHUB_ENV   # Add version here
+          echo "VERSION=1.2.0" >> $GITHUB_ENV
 
-      # Step 3: Build Docker image with environment + version tag
+      # Step 3: Build Docker image — passes TEST_ENV as build-arg so Dockerfile ARG receives it  , --build-arg in runtime
       - name: Build Docker image
         run: |
-          docker build -t docker.io/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }} .
+          docker build \
+            --build-arg TEST_ENV=${{ env.TEST_ENV }} \
+            -t docker.io/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }} .
 
-      # Step 4: Push Docker image to registry
+      # Step 4: Login and push image to Docker Hub registry
       - name: Push Docker image
         run: |
-          echo "${{ env.DOCKER_PASS }}" | docker login docker.io -u ${{ env.DOCKER_USER }} --password-stdin 
+          echo "${{ env.DOCKER_PASS }}" | docker login docker.io -u ${{ env.DOCKER_USER }} --password-stdin
           docker push docker.io/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }}
 
-      # Step 5: Install Ansible
+      # Step 5: Install Ansible on the runner
       - name: Install Ansible
         run: |
           sudo apt update
           sudo apt install -y ansible python3-pip
-          pip3 install "docker" "community.docker"
 
-      # Step 6: Run Ansible deploy playbook
+      # Step 6: Run Ansible deploy — pulls image from registry and runs on server
       - name: Run Ansible deploy
         run: |
-          ansible-playbook ansible/site.yml -i Ansible_configuration/Inventory/Inventory.ini -e "TEST_ENV=${{ env.TEST_ENV }} VERSION=${{ env.VERSION }}"
+          ansible-playbook Ansible_configuration/site.yml \
+            -i Ansible_configuration/Inventory/Inventory.ini \
+            -e "TEST_ENV=${{ env.TEST_ENV }}" \
+            -e "VERSION=${{ env.VERSION }}"
 
-
+      # Step 7: Destroy only app infra if any step above fails
       - name: Destroy on Failure
         if: failure()
         working-directory: terraform
-        run: terraform destroy -auto-approve
+        run: terraform destroy -target=module.app -auto-approve

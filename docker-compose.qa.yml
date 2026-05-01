@@ -1,23 +1,19 @@
 services:
   automation:
-#    image name and container wha need and volume to logs call that from shell
-    image: yashwanth_automation:web_android
-    build: .
+    # pull image from registry — built and pushed by CI/CD pipeline
+    image: docker.io/${DOCKER_USER}/automation-service:${TEST_ENV}-${VERSION}
     container_name: automation-test
 
-
-
     environment:
-       - TEST_ENV=${TEST_ENV}
-    
+      - TEST_ENV=${TEST_ENV}
+
     volumes:
       - /data/results:/mnt/results   # run: mkdir -p /data/results on host first
 
     ports:
-#  presnet to acces sth result form serever  need to upadte  and host realted not need to because i am not exposing any adata
       - "8000:8000"
 
-#allocated space for chrome
+    # allocated space for chrome
     shm_size: "2gb"
 
     restart: "no"
