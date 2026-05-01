@@ -86,7 +86,6 @@ variable "aws_route_table" {
 variable "eks_cluster_name" {
   description = "EKS cluster name"
   type        = string
-  default     = "hotstar-ios-cluster"
 }
 
 variable "k8s_version" {
