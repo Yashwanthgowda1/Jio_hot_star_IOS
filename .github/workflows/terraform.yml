@@ -36,10 +36,15 @@ jobs:
         with:
           terraform_version: 1.6.0
 
-      # step 3 — terraform init
+      - name: Clean Terraform cache
+        run: |
+          rm -rf ~/.terraform.d
+          rm -rf terraform/.terraform
+          rm -f terraform/.terraform.lock.hcl
+      
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init
+        run: terraform init -upgrade
 
       # step 4 — check formatting
       - name: Terraform Format
