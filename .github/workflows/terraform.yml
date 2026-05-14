@@ -56,21 +56,23 @@ jobs:
         working-directory: terraform
         run: terraform validate
 
-      # step 6 — plan (shows what will be created)
+      # step 6 — inject secrets (runs before plan AND apply)
+      - name: Inject secrets into tfvars
+        working-directory: terraform
+        run: |
+          echo 'key_pairs = "${{ secrets.AWS_KEY_PAIR }}"'      >> terraform.tfvars
+          echo 'eks_cluster_name = "${{ secrets.EKS_CLUSTER_NAME }}"' >> terraform.tfvars
+
+      # step 7 — plan (shows what will be created)
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var-file="terraform.tfvars"
+        run: terraform plan -input=false -var-file="terraform.tfvars"
 
-      # step 7 — apply (only on push to main)
+      # step 8 — apply (only on push to main)
       - name: Terraform Apply
         working-directory: terraform
         if: (github.ref == 'refs/heads/Qa_main' ||  github.ref == 'refs/heads/main')  && github.event_name == 'push'
-      #  insted >> overwrite     ,  > replace the values 
-        run: |
-      
-          echo 'key_pairs = "${{ secrets.AWS_KEY_PAIR }}"' >> terraform.tfvars
-          echo 'eks_cluster_name = "${{ secrets.EKS_CLUSTER_NAME }}"' >> terraform.tfvars
-          terraform apply -auto-approve -var-file="terraform.tfvars"
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
           
 
 

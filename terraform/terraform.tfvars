@@ -1,12 +1,10 @@
 # ─── region ───────────────────────────────────────────
 aws_region = "ap-south-1"
 
-# ─── eks ──────────────────────────────────────────────
-eks_cluster_name = "jio-hotstar-eks"
-
 # ─── environment ──────────────────────────────────────
 selected_env = ["dev", "prod", "stage"]
 
+# eks_cluster_name = "jio-hotstar-eks"
 
 # ─── vpc ──────────────────────────────────────────────
 vpc_cretion          = "ci_cd_pipelineflow"
