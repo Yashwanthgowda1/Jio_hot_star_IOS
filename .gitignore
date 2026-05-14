@@ -9,4 +9,6 @@ configs.json
 chrome_logs/
 results/
 Test/payments.py
-
+*.md
+Jenkinsfile
+[Jj]enkins*/

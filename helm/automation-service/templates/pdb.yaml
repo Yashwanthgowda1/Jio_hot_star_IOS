@@ -1,0 +1,18 @@
+{{- if gt (int .Values.replicaCount) 1 }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "automation-service.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.autoscaling.enabled }}
+  minAvailable: 2
+  {{- else }}
+  maxUnavailable: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "automation-service.selectorLabels" . | nindent 6 }}
+{{- end }}
