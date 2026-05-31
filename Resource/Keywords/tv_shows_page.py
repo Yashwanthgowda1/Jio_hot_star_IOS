@@ -182,67 +182,136 @@ def tear_down_devices(device=None):
 def swipe_up_on_device(device):
     shared_utils.swipe_up(device)
 
+def swipe_down_on_device(device):
+    shared_utils.swipe_down(device)    
+
 
 def appium_run_background(device):
     shared_utils.start_appium_background(device)
+
+   
+
+
+def select_catagory_would_watch(device, option="JioHotstar"):
+
+    if option not in ["JioHotstar", "Tadka"]:
+        raise f"${option} --> which sleected not matching "
+    shared_utils.sleep_with_msg(device, 2, "the_elemnt_is_loading_tadk_required")
+    dilog_two_min_video=shared_utils.find_element(device, home_page_dict, "watch_two_minvideo")
+    if dilog_two_min_video.is_displayed():
+        # atp_ond_ousde the thta aread
+        dilog_two_min_video.click()
+        shared_utils.sleep_with_msg(device, 8, "tadk popups window diabled")
+       
+    dict_loacter_collected=shared_utils.get_dict_copy_locater(device, home_page_dict, "select_tadak_audios_jiohotstar", "JioHotstar", option
+    )
+    shared_utils.find_element(device, dict_loacter_collected,"select_tadak_audios_jiohotstar").click()
+    shared_utils.sleep_with_msg(device, 5, "select_tadak_audios_jiohotstar is clicked")
+
 
 
 def verify_user_able_scroll_most_popular_and_below_all_contents(
     device, number_of_sides=3, phone_number=6363750455
 ):
-    scrolling_need_elements = shared_utils.find_element(
-        device, home_page_dict, "sliding_main_popular_shows_videos"
-    )
-    # if not scrolling_need_elements.is_displayed():
-    #     shared_utils.swipe_up_element_ref(device,scrolling_need_elements)
+    shared_utils.sleep_with_msg(device, 5, "wait until the ui call appear")
+
     while number_of_sides >= 0:
-        shared_utils.swipe_left_to_right_fav_shows(device, scrolling_need_elements)
-        shared_utils.sleep_with_msg(device, 5, "new slide again started")
-        number_of_sides -= 1
-        # here need to pass the mobile call during the swiping activity and use popen as advance funstion
-        if number_of_sides == 2:
-            process = subprocess.Popen(
-                ["adb", "emu", "gsm", "call", str(phone_number)],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
+
+        scrolling_need_elements = shared_utils.find_element(
+            device,
+            home_page_dict,
+            "sliding_main_popular_shows_videos"
+        )
+
+        if scrolling_need_elements is None:
+            raise AssertionError(
+                f"{device}: sliding_main_popular_shows_videos element not found"
             )
-            """
-            :Parm : when pass the values in popen is will return once exicute and collect the values 
-            communicate used to show that collected logs
-            stdout, stderr = process.communicate()
-            """
-            stdout, stderr = process.communicate()
-            if stdout:
-                print("the success of calling", stdout.strip())
-    #             flaky test lins
-    # shared_utils.find_element(device, home_page_dict, "click_on_answer").click()
+
+        if not scrolling_need_elements.is_displayed():
+            raise AssertionError(
+                f"{device}: sliding_main_popular_shows_videos element is not displayed"
+            )
+
+        shared_utils.swipe_left_to_right_fav_shows(
+            device,
+            scrolling_need_elements
+        )
+
+        shared_utils.sleep_with_msg(device, 5, "new slide again started")
+
+        number_of_sides -= 1
+
+        if number_of_sides == 2:
+            call_phone_number_in_cmd(device, phone_number)
+            end_call_after_recive(device)
+
+    shared_utils.sleep_with_msg(device, 3, "closed call overlay after end call")
+
+    scrolling_need_elements = shared_utils.find_element(
+        device,
+        home_page_dict,
+        "sliding_main_popular_shows_videos"
+    )
+
+    if scrolling_need_elements is None:
+        raise AssertionError(f"{device}: scroll_need_element not found")
+
+    if not scrolling_need_elements.is_displayed():
+        raise AssertionError(f"{device}: scroll_need_element not displayed")
+
+
+
+#
+def call_phone_number_in_cmd(device, phone_number):
+    # Start incoming call
     process = subprocess.Popen(
+        ["adb", "emu", "gsm", "call", str(phone_number)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+    stdout, stderr = process.communicate()
+
+    if stdout:
+        print("the success of calling", stdout.strip())
+
+    shared_utils.sleep_with_msg(device, 5, "wait after call received")
+
+    # Open call UI from top-left blue call chip
+    subprocess.Popen(
+        ["adb", "shell", "input", "tap", "205", "55"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    ).communicate()
+
+    shared_utils.sleep_with_msg(device, 2, "opened call UI from top chip")
+
+    # Answer call using CALL keyevent
+    subprocess.Popen(
         ["adb", "shell", "input", "keyevent", "5"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-    )
-    stdout, stderr = process.communicate()
-    if stdout:
-        print(
-            "the success after answer from the keycode calling",
-            stdout.strip().split(" ")[0],
-        )
-    shared_utils.sleep_with_msg(device, 5, "wait until the ui call appear")
+    ).communicate()
+
+    shared_utils.sleep_with_msg(device, 3, "answered call using keyevent")
+
+    # Again tap top chip because call UI may hide after answer
     subprocess.Popen(
-        ["adb", "shell", "input", "tap", "350", "80"],
+        ["adb", "shell", "input", "tap", "205", "55"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-    )
-    shared_utils.sleep_with_msg(device, 5, "wait until the ui call appear")
-    shared_utils.find_element(device, home_page_dict, "end_call_after_recive").click()
-    scrolling_need_elements = shared_utils.find_element(
-        device, home_page_dict, "sliding_main_popular_shows_videos"
-    )
-    if not scrolling_need_elements.is_displayed():
-        raise AssertionError(f" ${device}: scroll_need_element not found")
+    ).communicate()
+
+    shared_utils.sleep_with_msg(device, 5, "wait after opening hidden call UI")
+
+def end_call_after_recive(device):
+    shared_utils.find_element(device, home_page_dict, "end_call_after_recive").click() 
 
 
-#
+
+

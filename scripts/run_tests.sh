@@ -14,7 +14,7 @@ docker volume prune -f
 docker network prune -f
 
 # RUN THE TEST CASES
-robot -d /mnt/results/$TEST_ENV/$RUN_ID  -i "@web" Test
+robot --pythonpath /app -d /mnt/results/$TEST_ENV/$RUN_ID  -i "@web" Test
 
 
 echo "Logs stored in /mnt/results/$TEST_ENV/$RUN_ID (host path: /data/results/$TEST_ENV/$RUN_ID)"

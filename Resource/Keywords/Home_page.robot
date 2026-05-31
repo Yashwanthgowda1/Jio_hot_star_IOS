@@ -12,6 +12,7 @@ Launch And Signin Verify Home Page
     select_required_ott_languages    device=device_1
     swipe_up_on_device      device=device_1
 
+
 Launch And Signin Verify Home Page without swipe
     appium_run_background    device=device_1
     launch_jio_hotstar_application    device=device_1
