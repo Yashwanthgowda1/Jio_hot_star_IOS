@@ -12,3 +12,4 @@ Test/payments.py
 *.md
 Jenkinsfile
 [Jj]enkins*/
+interactive*/

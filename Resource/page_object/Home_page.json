@@ -88,5 +88,12 @@
   },
   "end_call_after_recive": {
     "xpath": "//*[@content-desc='End call']"
+  },
+  "select_tadak_audios_jiohotstar":{
+    "xpath": "//android.view.View[@content-desc='JioHotstar']"
+  },
+  "watch_two_minvideo":{
+    "android_ui_automator": "new UiSelector().className(\"android.view.View\").instance(2)"
   }
+
 }

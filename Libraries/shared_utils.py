@@ -393,7 +393,7 @@ def get_dict_copy_locater(
 
 
 def get_action_chain_object(
-    device, type_of_device="browser", perform="Drag_and_drop", src=None, dest=None
+    device, perform="Drag_and_drop", src=None, dest=None
 ):
     """'
     This method will help to perform the action like drag and drop , right click , double click and move to element and here src menas elmenet

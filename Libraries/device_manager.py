@@ -82,6 +82,7 @@ class DriverManger:
 
         elif device_class == "devices":
             # Load common desired capabilities
+            
             dict_caps_values = shared_utils.config["common_desired_caps"]
             endpoint = shared_utils.appium_endpoint_suffix(device=device_class)
 
