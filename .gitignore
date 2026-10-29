@@ -12,3 +12,7 @@ Test/payments.py
 *.md
 Jenkinsfile
 [Jj]enkins*/
+**/allure*/
+**/test-results/
+**/playwright-report/
+**/node_modules/
