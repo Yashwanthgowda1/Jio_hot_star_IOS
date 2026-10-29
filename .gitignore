@@ -18,4 +18,5 @@ Jenkinsfile
 *Playwright/node_modules/
 ***/allure-results/
 ***/allure-report/
+***node_modules/
 ***/env.*
