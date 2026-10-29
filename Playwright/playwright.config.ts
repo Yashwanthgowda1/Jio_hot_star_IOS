@@ -13,19 +13,22 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : 1,
   reporter: [
     ["list"],
     ["allure-playwright", { outputFolder: "test-results/allure-results" }],
   ],
 
   use: {
+    headless: process.env.HEADLESS !== "false",
+
     baseURL: webConfig_url || process.env.BASE_URL || "localhost:3000",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
 
 
   },
+  outputDir: 'test-results/', 
   projects: [
     // ── Desktop Web ──────────────────────────────────────────────────────────
     {
