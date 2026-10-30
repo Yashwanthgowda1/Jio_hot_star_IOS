@@ -66,6 +66,6 @@ TC8: verify user able to answer the call during scrolling a movies in serach tab
     intiate_call_from_device_2_to_device_1
     Answer_Call_On_Device_1_While_Scrolling
     verify_device_1_recieve_the_without_crash
-    [Teardown]      close all drivers    device=device_1
+    [Teardown]      close all drivers        device=device_1
 
 
