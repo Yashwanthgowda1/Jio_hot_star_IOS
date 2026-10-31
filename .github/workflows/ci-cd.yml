@@ -37,7 +37,7 @@ jobs:
       # Step 3: Build Docker image — passes TEST_ENV as build-arg so Dockerfile ARG receives it
       - name: Build Docker image
         run: |
-          docker build \
+          docker build -f Dockerfile \
             --build-arg TEST_ENV=${{ env.TEST_ENV }} \
             -t docker.io/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }} .
 
@@ -46,6 +46,18 @@ jobs:
         run: |
           echo "${{ env.DOCKER_PASS }}" | docker login docker.io -u ${{ env.DOCKER_USER }} --password-stdin
           docker push docker.io/${{ env.DOCKER_USER }}/automation-service:${{ env.TEST_ENV }}-${{ env.VERSION }}
+
+      # Step 5: Run the pushed image's test suite with Docker Compose
+      - name: Run tests with Docker Compose
+        env:
+          DOCKER_USER: ${{ env.DOCKER_USER }}
+          TEST_ENV: ${{ env.TEST_ENV }}
+          VERSION: ${{ env.VERSION }}
+          RUN_TESTS_ONLY: "true"
+        run: |
+          mkdir -p /data/results
+          docker compose -f docker-compose.qa.yml pull
+          docker compose -f docker-compose.qa.yml run --rm automation
 
       # Step 5: Install Ansible on the runner
       - name: Install Ansible

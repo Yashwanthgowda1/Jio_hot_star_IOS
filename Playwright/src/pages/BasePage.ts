@@ -1,4 +1,7 @@
 import { type Page, type Locator } from "@playwright/test";
+import CommonUtili from "../utils/CommonUtili";
+
+export type ActionType = "hover" | "click" | "doubleclick" | "rightclick";
 
 export class BasePage {
   constructor(protected page: Page) {}
@@ -22,4 +25,8 @@ export class BasePage {
   async isVisible(locator: Locator): Promise<boolean> {
     return await locator.isVisible();
   }
+  async actions(locator: Locator, actiontype: ActionType = "hover"): Promise<void> {
+    await CommonUtili.mouseactions(locator, actiontype);
+  }
+
 }

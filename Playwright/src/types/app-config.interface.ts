@@ -2,6 +2,7 @@ export interface AppConfig {
   common_desired_caps: AndroidCapabilities;
   devices: Record<string, AndroidDeviceConfig>;
   browsers: BrowserConfig;
+
 }
 
 export interface AndroidCapabilities {
@@ -24,4 +25,9 @@ export interface AndroidDeviceConfig extends AndroidCapabilities {
 
 export interface BrowserConfig {
   web_site: string;
+}
+
+export interface Credentials {
+  username: string;
+  password: string;
 }

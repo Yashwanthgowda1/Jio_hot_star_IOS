@@ -10,13 +10,15 @@ chrome_logs/
 results/
 Test/payments.py
 *.md
+*claude/
 Jenkinsfile
 [Jj]enkins*/
 ***/allure*/
-***/test-results/
+***test-results/
 ***/playwright-report/
 *Playwright/node_modules/
 ***/allure-results/
 ***/allure-report/
 ***node_modules/
-***/env.*
+
+***env.*
