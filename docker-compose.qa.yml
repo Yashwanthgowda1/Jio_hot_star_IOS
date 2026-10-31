@@ -6,6 +6,7 @@ services:
 
     environment:
       - TEST_ENV=${TEST_ENV}
+      - RUN_TESTS_ONLY=${RUN_TESTS_ONLY:-false}
 
     volumes:
       - /data/results:/mnt/results   # run: mkdir -p /data/results on host first

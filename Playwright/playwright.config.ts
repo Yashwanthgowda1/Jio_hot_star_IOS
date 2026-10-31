@@ -2,9 +2,10 @@ import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 import { BrowserName } from "./src/enums/browser-name.enum";
 import { FileReader } from "./src/utils/FileReader";
+import path from "path";
 
 
-const appConfig = FileReader.readconfigFile();
+const appConfig = FileReader.readconfigFile(path.resolve(process.cwd(), "..", "config.json"));
 const webConfig_url = appConfig.browsers.web_site;
 
 
@@ -22,9 +23,11 @@ export default defineConfig({
   use: {
     headless: process.env.HEADLESS !== "false",
 
-    baseURL: webConfig_url || process.env.BASE_URL || "localhost:3000",
+    // baseURL: webConfig_url || process.env.BASE_URL || "localhost:3000" || "https://opensource-demo.orangehrmlive.com/web/index.php/auth/login",
+    baseURL: "https://opensource-demo.orangehrmlive.com/web/index.php/auth/login",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    video: "retain-on-failure",
 
 
   },

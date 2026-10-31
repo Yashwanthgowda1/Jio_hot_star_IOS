@@ -1,11 +1,11 @@
-import { expect, test } from "../src/fixtures/test.fixture";
+import { test } from "../src/fixtures/test.fixture";
 
-test("home page opens successfully", async ({ homePage }) => {
-  const response = await homePage.open();
-
-  expect(response, "The home page should return an HTTP response").not.toBeNull();
-  expect(response?.ok(), "The home page should return a successful HTTP status").toBe(
-    true,
-  );
-  expect(homePage.getUrl()).toContain("/");
+test("searches the Leave List by employee name", async ({ homePage }) => {
+  await homePage.open();
+  await homePage.click_enter_user_cred();
+  await homePage.verify_banner_toggle_expanded();
+  await homePage.open_leave_list();
+  await homePage.selectLeaveDate("From Date", "February", 2025, 17);
+  await homePage.selectLeaveDate("To Date", "February", 2025, 18);
+  await homePage.search_leave_by_employee_name("Ranga Akunuri");
 });
