@@ -22,3 +22,4 @@ Jenkinsfile
 ***node_modules/
 
 ***.env.*
+**/.env
