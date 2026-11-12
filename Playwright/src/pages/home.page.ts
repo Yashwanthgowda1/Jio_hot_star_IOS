@@ -11,6 +11,10 @@ type MonthName = (typeof MONTH_NAMES)[number];
 type LeaveDateField = "From Date" | "To Date";
 
 export class HomePage extends BasePage {
+  private readonly alt_movie_name_new_for_you="xpath=ancestor::article[@role='presentation']//img";
+  private readonly new_episodes_or_for_you=this.page.locator("[class~='ON_IMAGE'][class~='TEXT_BADGE2']");
+  private readonly get_new_on_hotstar=this.page.locator("//*[@title='New on JioHotstar' or text()='New on JioHotstar']");
+  private readonly get_for_you_on_hotstar=this.page.locator("//*[text()='New on JioHotstar']");
   private readonly Loginpage:Locator=this.page.getByPlaceholder("Username");
   private readonly Passwordpage:Locator=this.page.getByPlaceholder("Password");
   private readonly Loginbutton:Locator=this.page.locator('button[type="submit"]');
@@ -34,8 +38,8 @@ export class HomePage extends BasePage {
 
   async open(): Promise<void> {
     await test.step("Open login page", async () => {
-      await this.navigate("/web/index.php/auth/login");
-    });
+      await this.navigate("/in/home");
+    })
   }
   async click_enter_user_cred(): Promise<void> {
     await test.step("Sign in with configured credentials", async () => {
@@ -143,6 +147,77 @@ export class HomePage extends BasePage {
         await expect(this.noResultsInfoPopup.first()).toBeVisible();
         await expect(this.noResultsInfoPopup).toContainText("No Records Found");
       }
+    });
+  }
+
+async getNewHotstarEpisodesOrForYou(): Promise<void> {
+  await test.step("Click New on Hotstar and verify contents", async () => {
+
+    const current_page_url =this.getcurrenturl();
+
+    await this.clickElement(this.get_new_on_hotstar);
+
+    // Wait until the new episodes content is visible
+    await expect(this.get_for_you_on_hotstar).toBeVisible();
+
+    const current_page_url_after_click = this.getcurrenturl();
+
+    // Verify URL only if clicking this button is expected to navigate
+    expect(current_page_url_after_click).not.toEqual(current_page_url);
+
+    // Now get all the New Episodes or For You data
+  });
+}
+
+  async get_all_new_epsoides_or_for_you():Promise<void>{
+    await test.step("Get all the new episodes or for you contents", async ()=>{
+      const dict_all_mew_episodes_and_for_you=new Map<string, string[]>();
+      let processed_count=0;
+      await expect(this.new_episodes_or_for_you.first()).toBeVisible();
+      const initial_count=await this.new_episodes_or_for_you.count();
+      expect(initial_count).toBeGreaterThan(0);
+
+      while(true){
+        const current_count=await this.new_episodes_or_for_you.count();
+        for(let i=processed_count;i<current_count;i++){
+          const actual_type_of_new_contnet=this.new_episodes_or_for_you.nth(i);
+          const values=await actual_type_of_new_contnet.innerText();
+          if(!dict_all_mew_episodes_and_for_you.has(values)){
+            await test.step(`Adding new key: ${values}`, async()=>{
+              dict_all_mew_episodes_and_for_you.set(values, []);
+            });
+          }
+          const movie_image=actual_type_of_new_contnet
+            .locator(this.alt_movie_name_new_for_you)
+            .first();
+          await expect(movie_image).toHaveAttribute("alt", /.+/);
+          const actual_names_movies_new_contnet=await movie_image.getAttribute("alt");
+          expect(actual_names_movies_new_contnet).not.toBeNull();
+          dict_all_mew_episodes_and_for_you.get(values)?.push(actual_names_movies_new_contnet!);
+        }
+        processed_count=current_count;
+
+        const scroll_position_before=await this.current_height_window();
+        const scroll_position_after=await this.scroll_page_once();
+        await this.page.waitForTimeout(900);
+        let count_after_scroll=await this.new_episodes_or_for_you.count();
+        // for(let attempt=0;attempt<10 && count_after_scroll<=processed_count;attempt++){
+        //   await this.page.waitForTimeout(300);
+        //   count_after_scroll=await this.new_episodes_or_for_you.count();
+        // }
+        if(scroll_position_before===scroll_position_after && count_after_scroll<=processed_count){
+          break;
+        }
+      }
+
+      await test.info().attach("new-episodes-or-for-you.json", {
+        body: JSON.stringify(
+          Object.fromEntries(dict_all_mew_episodes_and_for_you),
+          null,
+          2,
+        ),
+        contentType: "application/json",
+      });
     });
   }
 }

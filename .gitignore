@@ -21,4 +21,4 @@ Jenkinsfile
 ***/allure-report/
 ***node_modules/
 
-***env.*
+***.env.*

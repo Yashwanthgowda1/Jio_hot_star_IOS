@@ -4,6 +4,7 @@ import CommonUtili from "../utils/CommonUtili";
 export type ActionType = "hover" | "click" | "doubleclick" | "rightclick";
 
 export class BasePage {
+  // intiliaze the page at constracter 
   constructor(protected page: Page) {}
 
   async navigate(url: string): Promise<void> {
@@ -28,5 +29,26 @@ export class BasePage {
   async actions(locator: Locator, actiontype: ActionType = "hover"): Promise<void> {
     await CommonUtili.mouseactions(locator, actiontype);
   }
+  getcurrenturl():string {
+    return this.page.url();
+  }
+
+async current_height_window(): Promise<number> {
+    return await this.page.evaluate(() => document.scrollingElement?.scrollTop ?? 0);
+}
+
+async scroll_page_once(): Promise<number> {
+    return await this.page.evaluate(() => {
+        const scrollingElement = document.scrollingElement;
+        if (!scrollingElement) {
+            throw new Error("Unable to find the document scrolling element");
+        }
+        scrollingElement.scrollTop = Math.min(
+            scrollingElement.scrollTop + window.innerHeight,
+            scrollingElement.scrollHeight,
+        );
+        return scrollingElement.scrollTop;
+    });
+}
 
 }

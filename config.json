@@ -96,7 +96,7 @@
         }
 	},
     "browsers": {
-        "web_site":"https://www.hotstar.com/in/home",
+        "web_site":"https://www.hotstar.com/",
         "device1user": {
             "username": "-",
             "password": "-",
