@@ -3,11 +3,11 @@ import { expect, test } from "../src/fixtures/test.fixture";
 
 test.describe("SCRUM-20: Search with Suggestions", () => {
 
-  test.beforeEach(async ({ searchPage }) => {
-    await searchPage.open();
-  });
+  // test.beforeEach(async ({ searchPage }) => {
+  //   await searchPage.open();
+  // });
 
-  test.only("should display popular and partial-title suggestions", async ({searchPage,page,}) => {
+  test("should display popular and partial-title suggestions", async ({searchPage,page,}) => {
     await searchPage.focusSearch();
     await expect(searchPage.searchBox).toBeFocused();
     await expect(searchPage.popularSearchesHeading).toBeVisible();
@@ -25,7 +25,7 @@ test.describe("SCRUM-20: Search with Suggestions", () => {
     await expect(searchPage.inceptionResult).toBeVisible();
   });
 
-  test("should display the Inception top result", async ({
+  test.only("should display the Inception top result", async ({
     searchPage,
     page,
   }) => {

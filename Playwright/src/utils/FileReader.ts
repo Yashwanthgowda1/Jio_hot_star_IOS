@@ -16,7 +16,7 @@ export class FileReader {
     return JSON.parse(configContent) as AppConfig;
   }
 
-  static readenvFile(filePath: string = path.resolve(__dirname, "../../.env.example")): Record<string, string> {
+  static readenvFile(filePath: string = path.resolve(__dirname, "../../.env")): Record<string, string> {
     const envContent = fs.readFileSync(filePath, "utf-8");
 
     const envVariables: Record<string, string> = {};
