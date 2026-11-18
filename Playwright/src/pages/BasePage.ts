@@ -18,6 +18,13 @@ export class BasePage {
   async fillInput(locator: Locator, value: string): Promise<void> {
     await locator.fill(value);
   }
+  async getattributevalue(locator: Locator, attributeName: string): Promise<string> {
+    const attributeValue = await locator.getAttribute(attributeName);
+    if (attributeValue === null) {
+      throw new Error(`Attribute "${attributeName}" was not found`);
+    }
+    return attributeValue;
+  }
 
   async getText(locator: Locator): Promise<string> {
     return await locator.innerText();
@@ -29,9 +36,16 @@ export class BasePage {
   async actions(locator: Locator, actiontype: ActionType = "hover"): Promise<void> {
     await CommonUtili.mouseactions(locator, actiontype);
   }
+
+async navigatebackonce():Promise<void>{
+  await this.page.goBack();
+}
+
   getcurrenturl():string {
     return this.page.url();
   }
+
+
 
 async current_height_window(): Promise<number> {
     return await this.page.evaluate(() => document.scrollingElement?.scrollTop ?? 0);
@@ -50,5 +64,21 @@ async scroll_page_once(): Promise<number> {
         return scrollingElement.scrollTop;
     });
 }
+// two approch use any one 
+async scrollElementVisible(locator: Locator): Promise<void> {
+    await locator.evaluate((element) => {
+        element.scrollIntoView(true);
+    });
+}
+
+// another method of the scroll
+async scrollElementVisibleapproch(locator: Locator): Promise<void> {
+    await this.page.evaluate((element) => {
+        element.scrollIntoView(true);
+    } , await locator.elementHandle());
+}
+
+
+
 
 }
