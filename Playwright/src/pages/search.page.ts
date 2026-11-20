@@ -27,6 +27,7 @@ export class SearchPage extends BasePage {
     this.clearButton = page.getByTestId("input-clear-option");
     this.searchTab = page.getByRole("tab", { name: "Search" });
   }
+  
 
   async open(): Promise<void> {
     await this.navigate("/");

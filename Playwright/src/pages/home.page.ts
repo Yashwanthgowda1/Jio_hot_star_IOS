@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Locator } from "@playwright/test";
+import { expect, test,  Page, Locator } from "@playwright/test";
 import { BasePage } from "./BasePage";
 import { FileReader } from "../utils/FileReader";
 
@@ -6,6 +6,8 @@ const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ] as const;
+
+
 
 type MonthName = (typeof MONTH_NAMES)[number];
 type LeaveDateField = "From Date" | "To Date";
@@ -31,6 +33,12 @@ export class HomePage extends BasePage {
   private readonly employeeName=this.page.getByPlaceholder("Type for hints...");
   private readonly leaveSearchButton=this.page.getByRole("button", { name: /Search/, exact: true });
   private readonly noResultsInfoPopup=this.page.locator(".oxd-toast-content--info").locator("[class*='oxd-toast-content-text']").nth(1)
+
+  private readonly catagrory_selector = this.page.getByRole("tab", {
+    name: "Categories",
+    exact: true,
+  });
+  
 
   constructor(page: Page) {
     super(page);
@@ -220,4 +228,19 @@ async getNewHotstarEpisodesOrForYou(): Promise<void> {
       });
     });
   }
+
+  
+  async navigate_to_category_page():Promise<void>{
+    await test.step("verify and navigate to category page", async()=>{
+      const currentUrl = this.getcurrenturl();
+      expect(currentUrl).toContain("/in/home");
+      await this.clickElement(this.catagrory_selector);
+      await expect(this.page).not.toHaveURL(currentUrl);
+    })
+
+  }
+
+
+
+
 }
