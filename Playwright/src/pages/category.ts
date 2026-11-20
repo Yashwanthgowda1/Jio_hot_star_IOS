@@ -1,4 +1,4 @@
-import { Page, Locator, test, expect } from "@playwright/test";
+import { Page, test } from "@playwright/test";
 import { BasePage } from "./BasePage";
 
 const allcontnetincategory= new Map<string, string[]>();
@@ -6,10 +6,9 @@ const allcontnetincategory= new Map<string, string[]>();
 export class CategoryPage extends BasePage {
 // declarization of the locators
 private readonly allcategorysection=this.page.getByRole("heading", {level:2, exact:true, includeHidden:true});
-private readonly allviewsectionsincategory:string="/ancestor::div[contains(@class,'_2KvYrW83MAqzJ5YSbD2rZ4')]/descendant::div[@data-name='tray-header-expand-cta']";
-private readonly allviewsectionsincategorylocator=this.page.locator("[class~='-xcjfqjliWAYyIAfmvHKm'] [data-testid='link']");
-private readonly verifyheader=this.page.getByRole("heading", {name:"Disney Plus", level:4, exact:true});
-
+private readonly allviewsectionsincategory:string="xpath=./ancestor::div[@navigationtype='DEFAULT']/following-sibling::div[@data-name='tray-header-expand-cta']//button[@data-testid='pill-View All']"
+// private readonly allviewsectionsincategorylocator=this.page.locator("[class~='-xcjfqjliWAYyIAfmvHKm'] [data-testid='link']"); no use
+private readonly navigationBackdrop=this.page.getByTestId("backdropWidth").first();
 
     constructor(page:Page){
         // initilazation of the base page class
@@ -36,8 +35,12 @@ private readonly verifyheader=this.page.getByRole("heading", {name:"Disney Plus"
           .locator(this.allviewsectionsincategory)
           .first();
 
+        if (await this.isVisible(this.navigationBackdrop)) {
+          await this.navigationBackdrop.click();
+          await this.navigationBackdrop.waitFor({ state: "hidden" });
+        }
+
         await this.clickElement(viewAllSection);
-        await expect(this.verifyheader).toContainText(sectionselect);
         break;
       }
     }

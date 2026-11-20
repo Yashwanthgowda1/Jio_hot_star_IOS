@@ -29,49 +29,32 @@ export class StudiosPage extends BasePage {
     super(page);
   }
 
+ 
   async selectHboMaxFranchise(): Promise<void> {
     await test.step("Open the HBO Max studio page", async () => {
       await this.clickElement(this.hboMaxLogo);
-      await this.scrollElementVisibleapproch(
-        this.page.locator(this.headerSelector).first(),
-      );
+      await expect(this.page).toHaveURL(/\/studios\/hbo_max\//);
+      await expect(this.openedFranchiseRails.first()).toBeVisible();
 
-      const franchiseCount = await this.availableStudioFranchises.count();
-      this.studioFranchiseNames.length = 0;
-
-      for (let index = 0; index < franchiseCount; index++) {
-        const franchiseName = await this.getattributevalue(
-          this.availableStudioFranchises.nth(index),
-          "alt",
-        );
-        this.studioFranchiseNames.push(franchiseName);
-      }
-
-      await test.info().attach("available-studio-franchises.json", {
-        body: JSON.stringify(this.studioFranchiseNames, null, 2),
-        contentType: "application/json",
-      });
-
-      await test.step("Select the HBO Max franchise", async () => {
-        for (let index = 0; index < franchiseCount; index++) {
-          const franchiseImage = this.availableStudioFranchises.nth(index);
-          const franchiseName = this.studioFranchiseNames[index];
-
-          if (franchiseName.trim().includes("HBO Max")) {
-            await this.clickElement(franchiseImage);
-            return;
-          }
-        }
-
-        throw new Error("HBO Max franchise was not found");
+      await test.step("Open the HBO franchise", async () => {
+        const hboLink = this.page.getByRole("link", {
+          name: /^HBO,CHANNEL$/,
+          exact: true,
+        });
+        await expect(hboLink).toBeVisible();
+        await this.clickElement(hboLink);
+        await expect(this.page).toHaveURL(/\/studios\/hbo\//);
       });
     });
   }
 
-  async collectHboMaxSectionContents(): Promise<void> {
+
+   async collectHboMaxSectionContents(): Promise<void> {
     await test.step("Collect contents for each HBO Max section", async () => {
       this.franchiseContents.clear();
       const sectionCount = await this.franchiseSectionContainers.count();
+      const hboPageUrl = this.getcurrenturl();
+      console.log(`now it enter to the hbo page and all farncahiescounts ${sectionCount}`)
 
       for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {
         const section = this.franchiseSectionContainers.nth(sectionIndex);
@@ -81,6 +64,7 @@ export class StudiosPage extends BasePage {
           .first();
         const categoryName = (await this.getText(categoryHeading)).trim();
 
+
         if (!this.franchiseContents.has(categoryName)) {
           this.franchiseContents.set(categoryName, []);
         }
@@ -89,26 +73,30 @@ export class StudiosPage extends BasePage {
           .locator(this.viewAllButtonSelector)
           .first();
 
-        if ((await viewAllButton.count()) === 0) {
-          continue;
-        }
-
         await test.step(`Collect "${categoryName}" contents`, async () => {
-          await this.clickElement(viewAllButton);
-          await expect(this.viewAllContentImages.first()).toBeVisible();
-
-          const contentCount = await this.viewAllContentImages.count();
-          const categoryContents = this.franchiseContents.get(categoryName);
-
-          for (let contentIndex = 0; contentIndex < contentCount; contentIndex++) {
-            const contentName = await this.getattributevalue(
-              this.viewAllContentImages.nth(contentIndex),
-              "alt",
-            );
-            categoryContents?.push(contentName);
+          if (
+            (await viewAllButton.count()) > 0 &&
+            (await viewAllButton.isVisible())
+          ) {
+            await this.clickElement(viewAllButton);
+          } else {
+            const sectionLink = categoryHeading.locator("xpath=ancestor::a");
+            await expect(sectionLink).toBeVisible();
+            await this.clickElement(sectionLink);
           }
 
-          await this.navigatebackonce();
+          await expect(this.viewAllContentImages.first()).toHaveAttribute("alt", /.+/);
+
+          const eachaltvalueslist=await this.viewAllContentImages.evaluateAll(el => el.map(eachtextalt=>eachtextalt.getAttribute('alt')?.trim() ?? ""));
+          const actuallyexistcontnet:string[]=eachaltvalueslist.filter(filetrouttext=> filetrouttext?.length>0)
+          const categoryContents = this.franchiseContents.get(categoryName);
+
+         categoryContents?.push(...actuallyexistcontnet);
+          
+          console.log("now done with collect the contnetindex values itarations ")
+
+          await this.page.goto(hboPageUrl, { waitUntil: "domcontentloaded" });
+          await expect(this.page).toHaveURL(hboPageUrl);
           await expect(
             this.franchiseSectionContainers.nth(sectionIndex),
           ).toBeVisible();
