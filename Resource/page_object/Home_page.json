@@ -35,14 +35,15 @@
 
   },
   "more_option":{
-  "xpath":"//*[@content-desc='More']"
+  "xpath":"//*[@content-desc='More']",
+  "id2":"test_tag_sub_navigation_text_widget"
   },
   "more_option_dilouge_box_popups":{
     "xpath":"//android.view.View[@resource-id='tag_landing_page_tray_space']"
   
   },
   "studio_option":{
-    "xpath":"//*[@text='Studios']"
+    "xpath":"//*[@text='Studios' or @content-desc='Studios']"
     
   },
   "home_page_location_enable_popups_window":{
@@ -88,5 +89,8 @@
   },
   "end_call_after_recive": {
     "xpath": "//*[@content-desc='End call']"
+  },
+  "back":{
+    "id": "Back"
   }
 }

@@ -1,6 +1,5 @@
 from Libraries import shared_utils, device_manager
 
-
 home_page_dict = shared_utils.load_loctors("Resource/page_object/Home_page.json")
 
 

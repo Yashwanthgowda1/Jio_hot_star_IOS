@@ -186,6 +186,7 @@ def find_element(device, locator_dict, locator_key, timeout=10, single_element=T
         for loc_type, loc_value in locators.items():
             by = by_map.get(loc_type.lower())
             if not by:
+                #  WebDriverWait(driver, timeout=15).until(EC.presence_of_all_elements_located(By.XPATH, ""))
                 continue
 
             try:
@@ -430,9 +431,10 @@ def is_port_open(port):
 
 
 def wait_for_accept_appium_connection(port, timeout=35):
-    """Wait until Appium server responds on /wd/hub/status"""
+    """Wait until Appium server responds on its status endpoint."""
     start_time = time.time()
-    url = f"http://127.0.0.1:{port}/wd/hub/status"
+    endpoint_suffix = appium_endpoint_suffix("Appium")
+    url = f"http://127.0.0.1:{port}{endpoint_suffix}/status"
 
     while True:
         elapsed_time = time.time() - start_time

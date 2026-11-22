@@ -51,7 +51,15 @@
     },
     "current_time_before_skipping":{
         "xpath":"//span[@style='-webkit-line-clamp: 1;']"
+    },
+    "get_all_content_from_required_studios":{
+        "xpath": " //android.view.View[@resource-id='tag_tray_regular']/android.view.View"
+    },
+    "get_all_list_content":{
+        "id2": "tag_image_content_poster"
     }
+    
+
     }
 
 
