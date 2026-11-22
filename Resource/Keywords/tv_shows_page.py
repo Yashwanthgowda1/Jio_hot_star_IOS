@@ -246,3 +246,109 @@ def verify_user_able_scroll_most_popular_and_below_all_contents(
 
 
 #
+
+
+def verify_user_able_to_navigate_visble_contents_basedOn_titles(
+    device, extractContnet="Warner Bros"
+):
+    studio_option = shared_utils.find_element(device, tv_shows_dict, "studio_option")
+    if not studio_option.is_displayed():
+        raise AssertionError(f"[{device}] Studios option is not displayed")
+
+    list_all_options = shared_utils.find_elements(
+        device, tv_shows_dict, "studio_page_options"
+    )
+    studio_titles = []
+    for option in list_all_options:
+        description = option.get_attribute("content-desc")
+        if description:
+            studio_titles.append(description.split(",")[0].strip())
+
+    requested_title = extractContnet.strip()
+    selected_title = next(
+        (
+            title
+            for title in studio_titles
+            if title.casefold() == requested_title.casefold()
+        ),
+        None,
+    )
+    if selected_title is None:
+        raise AssertionError(
+            f"Studio '{requested_title}' not found. Available studios: {studio_titles}"
+        )
+
+    studio_locator = shared_utils.get_dict_copy_locater(
+        device,
+        tv_shows_dict,
+        "studio_page_options",
+        "CHANNEL",
+        selected_title,
+    )
+    shared_utils.find_element(device, studio_locator, "studio_page_options").click()
+    verify_studios_section_vsibality(device)
+
+    visible_rails = shared_utils.find_elements(
+        device, tv_shows_dict, "get_all_content_from_required_studios"
+    )
+    if not visible_rails:
+        raise AssertionError(f"[{device}] No studio content rails found")
+
+    collected_content = {}
+    for rail_index in range(len(visible_rails)):
+        rails = shared_utils.find_elements(
+            device, tv_shows_dict, "get_all_content_from_required_studios"
+        )
+        if rail_index >= len(rails):
+            raise AssertionError(
+                f"[{device}] Studio content rail {rail_index} is no longer available"
+            )
+
+        rail = rails[rail_index]
+        if not rail.is_displayed():
+            shared_utils.swipe_up_element_ref(device, rail)
+            rails = shared_utils.find_elements(
+                device, tv_shows_dict, "get_all_content_from_required_studios"
+            )
+            if rail_index >= len(rails):
+                raise AssertionError(
+                    f"[{device}] Studio content rail {rail_index} is not visible"
+                )
+            rail = rails[rail_index]
+
+        rail_title = rail.get_attribute("content-desc")
+        if not rail_title:
+            raise AssertionError(
+                f"[{device}] Studio content rail {rail_index} has no title"
+            )
+
+        rail.click()
+        try:
+            rail_contents = shared_utils.find_elements(
+                device, tv_shows_dict, "get_all_list_content"
+            )
+            if not rail_contents:
+                raise AssertionError(
+                    f"[{device}] No contents found for studio rail '{rail_title}'"
+                )
+
+            content_titles = []
+            for content in rail_contents:
+                content_title = content.get_attribute("content-desc")
+                if content_title:
+                    content_titles.append(content_title)
+            if not content_titles:
+                raise AssertionError(
+                    f"[{device}] No content titles found for studio rail '{rail_title}'"
+                )
+            collected_content[rail_title] = content_titles
+        finally:
+            shared_utils.find_element(device, home_page_dict, "back").click()
+
+    return collected_content
+
+
+def verify_studios_section_vsibality(device):
+    el_studi = shared_utils.find_element(device, home_page_dict, "studio_option")
+    if el_studi.is_displayed():
+        raise AssertionError(f"${device} Page is not navigated")

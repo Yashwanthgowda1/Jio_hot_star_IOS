@@ -65,4 +65,15 @@ TC8: verify user able to answer the call during scrolling a movies in serach tab
     verify_user_able_scroll_most_popular_and_below_all_contents    device=device_1
     [Teardown]      close all drivers    device=device_1
 
+TC9: verify all constnet in studios section and store the list of contnets based on headings
+    [Tags]  636375  @SMOKE  @SANITY
+    Launch And Signin Verify Home Page
+    verfy_user_able_to_select_studio_option    device=device_1
+    click_selected_content_page_on_studio        device=device_1
+    &{list_of_all_contents_by_rail} =    verify_user_able_to_navigate_visble_contents_basedOn_titles    device=device_1
+    Log    List of all studio contents present: ${list_of_all_contents_by_rail}
+    [Teardown]      close all drivers    device=device_1
+
+
+
 

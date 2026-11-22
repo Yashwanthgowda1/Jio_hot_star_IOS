@@ -11,7 +11,6 @@ from selenium.common.exceptions import (
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
 # ---------------- UNIVERSAL DECORATORS ---------------- #
 
 
@@ -55,7 +54,9 @@ def auto_handle_appium_errors(retry_count=3, retry_delay=3):
                     print(f"[{device}] ❌ Unexpected error in {func.__name__}: {e}")
                     break
 
-            print(f"[{device}] ❌ Failed after {retry_count} retries in {func.__name__}")
+            print(
+                f"[{device}] ❌ Failed after {retry_count} retries in {func.__name__}"
+            )
             return None
 
         return wrapper
